@@ -26,6 +26,8 @@ class BaseDatabaseWrapper(_BaseDatabaseWrapper):
 
         return wrapper
 
+    #TODO get_connection() to return conn
+
     def cursor(self, fn=None):
         if callable(fn):
             return self.cursor_decorator(fn)
@@ -43,9 +45,12 @@ class BaseDatabaseWrapper(_BaseDatabaseWrapper):
                     yield cur
                 return
             async with self.async_pool.connection() as conn:
-                async with conn.cursor() as cur:
-                    yield cur
-
+                token = self.async_connection.set(conn)
+                try:
+                    async with conn.cursor() as cur:
+                        yield cur
+                finally:
+                    self.async_connection.reset(token)
         return cursor()
 
     def get_cursor(self):

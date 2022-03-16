@@ -4,7 +4,7 @@ from functools import cached_property
 
 from django.db.backends.base.base import BaseDatabaseWrapper as _BaseDatabaseWrapper
 
-from vinyl.pwt import is_async
+from vinyl.futures import is_async
 
 
 class BaseDatabaseWrapper(_BaseDatabaseWrapper):

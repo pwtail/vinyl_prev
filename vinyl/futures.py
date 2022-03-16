@@ -1,10 +1,6 @@
-import asyncio
 import inspect
 import threading
-
 import typing
-from contextlib import contextmanager
-from contextvars import ContextVar
 
 
 def is_async():
@@ -14,17 +10,8 @@ def set_async(value):
     threadlocal.IS_ASYNC = bool(value)
 
 
-class RetCursor(typing.NamedTuple):
-    rowcount: int
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
-
-    def close(self):
-        pass
+threadlocal = threading.local()
+threadlocal.IS_ASYNC = 1  # default
 
 
 def later(fn):
@@ -51,22 +38,14 @@ def later(fn):
 
     return wrapper
 
-wait = then = later
-
 def value(val):
-    @wait
+    @later
     def f():
         return val
     return f()
 
-wait.value = value
+later.value = value
 del value
-
-
-def gather(*tasks):
-    if not is_async():
-        return tasks
-    return asyncio.gather(*tasks)
 
 
 def gen(fn):
@@ -91,8 +70,3 @@ def gen(fn):
                 return ex.value
 
     return wrapper
-
-
-threadlocal = threading.local()
-threadlocal.IS_ASYNC = 1  # default
-

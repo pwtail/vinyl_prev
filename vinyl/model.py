@@ -4,17 +4,17 @@ from django.db.models.deletion import Collector
 from django.db.models.functions import Coalesce
 from django.db.models.query_utils import DeferredAttribute
 
-from vinyl.pwt import gen
+from vinyl.futures import gen
 
 
-class MC(type(Model)):
+class NoMetaclass(type(Model)):
 
     def __new__(cls, *args, **kwargs):
         return type.__new__(cls, *args, **kwargs)
 
 
 
-class VinylModel(_Model, metaclass=MC):
+class VinylModel(_Model, metaclass=NoMetaclass):
 
 
     def save(

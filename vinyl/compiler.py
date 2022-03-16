@@ -1,12 +1,27 @@
+import typing
+
 from django.core.exceptions import EmptyResultSet
 from django.db import connection, connections
 from django.db.models.sql.compiler import SQLCompiler as DjangoSQLCompiler
 from django.db.models.sql.compiler import SQLUpdateCompiler as DjangoSQLUpdateCompiler
 from django.db.models.sql.constants import SINGLE, MULTI, NO_RESULTS, CURSOR
 
-from vinyl.pwt import later, RetCursor, gen
+from vinyl.futures import later, gen
 
 from django.db.models.sql.compiler import *
+
+
+class RetCursor(typing.NamedTuple):
+    rowcount: int
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    def close(self):
+        pass
 
 
 class SQLCompiler(DjangoSQLCompiler):

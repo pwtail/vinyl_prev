@@ -10,7 +10,7 @@ from django.db.models.query import get_related_populators
 from django.forms import IntegerField
 
 from vinyl.model import make_model_class
-from vinyl.pwt import Branch, gen, is_async
+from vinyl.futures import gen, is_async
 
 from django.db.models import Model as _Model
 
@@ -26,11 +26,6 @@ class VinylQuerySet(QuerySet):
         model = make_model_class(model)
         super().__init__(model=model, query=query, using=using, hints=hints)
 
-
-
-
-    branch = Branch.Descriptor()
-
     def __iter__(self):
         self._fetch_all_()
         return iter(self._result_cache)
@@ -38,8 +33,8 @@ class VinylQuerySet(QuerySet):
     @property
     def _fetch_all_(self):
         if is_async():
-            return self._fetch_all_async()
-        return self._fetch_all_sync()
+            return self._fetch_all_async
+        return self._fetch_all_sync
 
     async def _fetch_all_async(self):
         if self._result_cache is None:

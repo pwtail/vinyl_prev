@@ -237,20 +237,6 @@ class VinylModel(_Model, metaclass=NoMetaclass):
             )
         return (yield filtered._update(values)) > 0
 
-    def delete(self, using=None, keep_parents=False):
-        if self.pk is None:
-            raise ValueError(
-                "%s object can't be deleted because its %s attribute is set "
-                "to None." % (self._meta.object_name, self._meta.pk.attname)
-            )
-        using = using or router.db_for_write(self.__class__, instance=self)
-        if using:
-            connection = connections[using]
-        collector_cls = getattr(connection.ops, 'Collector', Collector)
-        collector = collector_cls(using=using)
-        collector.collect([self], keep_parents=keep_parents)
-        return collector.delete()
-
 
 def make_model_class(cls):
     bases = []

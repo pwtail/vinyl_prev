@@ -12,6 +12,9 @@ from django.db.models.sql.compiler import *
 
 
 class RetCursor(typing.NamedTuple):
+    """
+    TODO
+    """
     rowcount: int
 
     def __enter__(self):

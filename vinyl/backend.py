@@ -26,15 +26,11 @@ class BaseDatabaseWrapper(_BaseDatabaseWrapper):
 
         return wrapper
 
-    #TODO get_connection() to return conn
-
     def cursor(self, fn=None):
         if callable(fn):
             return self.cursor_decorator(fn)
         if not is_async():
             return self.get_cursor()
-
-        #TODO give a warning if connection is active and asking for connection
 
         @asynccontextmanager
         async def cursor():
@@ -55,7 +51,3 @@ class BaseDatabaseWrapper(_BaseDatabaseWrapper):
 
     def get_cursor(self):
         return super().cursor()
-
-
-def with_cursor(fn):
-    1

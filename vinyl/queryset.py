@@ -59,9 +59,6 @@ class VinylQuerySet(QuerySet):
         return self._fetch_all_().__await__()
 
     def _make_objects(self, rows):
-        """
-        TODO
-        """
         compiler = self.compiler
         # Execute the query. This will also fill compiler.select, klass_info,
         # and annotations.

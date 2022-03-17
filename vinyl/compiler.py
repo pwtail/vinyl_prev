@@ -11,22 +11,6 @@ from vinyl.futures import later, gen
 from django.db.models.sql.compiler import *
 
 
-class RetCursor(typing.NamedTuple):
-    """
-    TODO
-    """
-    rowcount: int
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
-
-    def close(self):
-        pass
-
-
 class SQLCompiler(DjangoSQLCompiler):
 
     def has_results(self):
@@ -136,3 +120,19 @@ class SQLUpdateCompiler(SQLCompiler):
                 rows = aux_rows
                 is_empty = False
         return rows
+
+
+class RetCursor(typing.NamedTuple):
+    """
+    An object to return when result_type is CURSOR
+    """
+    rowcount: int
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    def close(self):
+        pass

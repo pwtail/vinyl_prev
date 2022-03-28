@@ -13,6 +13,16 @@ from django.db.models.sql.compiler import *
 
 class SQLCompiler(DjangoSQLCompiler):
 
+    def convert_rows(self, rows, tuple_expected=False):
+        "Apply converters."
+        fields = [s[0] for s in self.select[0 : self.col_count]]
+        converters = self.get_converters(fields)
+        if converters:
+            rows = self.apply_converters(rows, converters)
+            if tuple_expected:
+                rows = map(tuple, rows)
+        return rows
+
     def has_results(self):
         """
         Backends (e.g. NoSQL) can override this in order to use optimized
@@ -99,6 +109,7 @@ class SQLUpdateCompiler(SQLCompiler):
     def pre_sql_setup(self):
         return DjangoSQLUpdateCompiler.pre_sql_setup(self)
 
+    #FIXME
     @gen
     def execute_sql(self, result_type):
         """

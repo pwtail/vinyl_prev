@@ -1,4 +1,4 @@
-from django.core.management import sql
+from django.db.models import sql
 from django.db import router, connections
 from django.db.models import Model as _Model, Model, ExpressionWrapper, Max, Value, IntegerField
 from django.db.models.deletion import Collector
@@ -238,6 +238,9 @@ class VinylModel(_Model, metaclass=NoMetaclass):
             )
         return (yield filtered._update(values)) > 0
 
+
+class VModel:
+
     def insert(self, using=None):
         meta = self._meta
         query = sql.InsertQuery(meta.model)
@@ -245,6 +248,10 @@ class VinylModel(_Model, metaclass=NoMetaclass):
         fields = [f for f in fields if f is not meta.auto_field]
         query.insert_values(fields, [self])
         return query.get_compiler(using=using).execute_sql()
+
+
+def get_vinyl_model(model_cls):
+    name = model_cls.__name__
 
 
 def make_model_class(cls):

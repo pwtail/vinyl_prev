@@ -18,22 +18,11 @@ class BaseIterable:
 
         assert not chunked_fetch
 
-    def get_rows(self):
-        queryset = self.queryset
-        db = queryset.db
-        self.compiler = queryset.query.get_compiler(using=db)
-        return self.compiler.execute_sql()
-
-
-class ModelIterable(BaseIterable):
-    """Iterable that yields a model instance for each row."""
-
-
     def get_objects(self):
         queryset = self.queryset
         db = queryset.db
         compiler = queryset.query.get_compiler(using=db)
-        rows = self.compiler.execute_sql()
+        rows = compiler.execute_sql()
 
         @later
         def get_objects(rows=rows):
@@ -43,6 +32,10 @@ class ModelIterable(BaseIterable):
             return objects
 
         return get_objects()
+
+
+class ModelIterable(BaseIterable):
+    """Iterable that yields a model instance for each row."""
 
     def make_objects(self, compiler, rows):
         queryset = self.queryset
@@ -149,7 +142,7 @@ class ValuesListIterable(BaseIterable):
                 async for row in compiler.convert_rows(rows):
                     yield rowfactory(row)
 
-        async for row in compiler.results_iter(tuple_expected=True):
+        for row in compiler.convert_rows(rows, tuple_expected=True):
             yield row
 
 

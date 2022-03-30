@@ -38,6 +38,14 @@ def later(fn):
 
     return wrapper
 
+
+async def sequence(tasks):
+    li = []
+    for task in tasks:
+        li.append(await task)
+    return li
+
+
 def value(val):
     @later
     def f():

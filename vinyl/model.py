@@ -5,7 +5,7 @@ from django.db.models.deletion import Collector
 from django.db.models.functions import Coalesce
 from django.db.models.query_utils import DeferredAttribute
 
-from vinyl.futures import gen
+from vinyl.futures import gen, later
 
 
 class NoMetaclass(type(Model)):
@@ -247,9 +247,18 @@ class VModel:
         meta = self._meta
         query = sql.InsertQuery(meta.model)
         fields = meta.local_concrete_fields
+        returning_fields = meta.db_returning_fields
         fields = [f for f in fields if f is not meta.auto_field]
         query.insert_values(fields, [self])
-        return query.get_compiler(using=using).execute_sql()
+        rows = query.get_compiler(using=using).execute_sql(returning_fields)
+
+        @later
+        def insert(rows=rows):
+            if rows:
+                for value, field in zip(rows[0], returning_fields):
+                    setattr(self, field.attname, value)
+
+        return insert()
 
 
 def get_vinyl_model(model_cls):

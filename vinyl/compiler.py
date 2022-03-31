@@ -145,38 +145,44 @@ class SQLInsertCompiler(ExecuteMixin, _compiler.SQLInsertCompiler):
 
     #FIXME self.connection
 
-    def _execute_sql(self, *, cursor):
-        "Always returns pk's of inserted objects"
+    def _execute_sql(self, returning_fields=None, *, cursor):
+        assert not (
+            returning_fields
+            and len(self.query.objs) != 1
+            and not self.connection.features.can_return_rows_from_bulk_insert
+        )
         opts = self.query.get_meta()
-
+        self.returning_fields = returning_fields
         [(sql, params)] = self.as_sql()
         execute = cursor.execute(sql, params)
 
-        # await execute
-        return cursor.fetchone()
-
-        if self.connection.features.can_return_columns_from_insert:
-            fetched_columns = self.connection.ops.fetch_returned_insert_columns(
+        if not self.returning_fields:
+            return []
+        if (
+            self.connection.features.can_return_rows_from_bulk_insert
+            and len(self.query.objs) > 1
+        ):
+            @later
+            def get_rows(execute=execute):
+                return self.connection.ops.fetch_returned_insert_rows(cursor)
+        elif self.connection.features.can_return_columns_from_insert:
+            assert len(self.query.objs) == 1
+            row = self.connection.ops.fetch_returned_insert_columns(
                 cursor,
-                None,
+                self.returning_params,
             )
             @later
-            def get_rows(execute=execute, fetched_columns=fetched_columns):
-                return [
-                    fetched_columns
-                ]
+            def get_rows(execute=execute, row=row):
+                return [row]
         else:
             last_insert_id = self.connection.ops.last_insert_id(
                 cursor,
                 opts.db_table,
                 opts.pk.column,
             )
-
             @later
             def get_rows(execute=execute, last_insert_id=last_insert_id):
-                return [
-                    (last_insert_id,)
-                ]
+                return [(last_insert_id,)]
 
         rows = get_rows()
         return self._convert_rows(rows=rows)

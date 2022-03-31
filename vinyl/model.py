@@ -242,6 +242,8 @@ class VinylModel(_Model, metaclass=NoMetaclass):
 class VModel:
 
     def insert(self, using=None):
+        # using = using or router.db_for_write(self.model, instance=obj)
+        using = 'vinyl_default'
         meta = self._meta
         query = sql.InsertQuery(meta.model)
         fields = meta.local_concrete_fields

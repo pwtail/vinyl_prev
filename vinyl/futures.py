@@ -17,18 +17,23 @@ threadlocal.IS_ASYNC = 1  # default
 def later(fn):
     assert not inspect.iscoroutinefunction(fn)
     sig = inspect.signature(fn)
-    awaitables = [(k, v.default) for k, v in sig.parameters.items() if isinstance(v.default, typing.Awaitable)]
+    # awaitables = [(k, v.default) for k, v in sig.parameters.items() if isinstance(v.default, typing.Awaitable)]
 
     async def awrapper(*args, **kwargs):
-        for key, val in awaitables:
-            try:
-                kwargs[key] = await val
-            except Exception as ex:
-                kwargs[key] = ex
-        val = fn(*args, **kwargs)
-        if isinstance(val, typing.Awaitable):
-            val = await val
-        return val
+        default_kwargs = {
+            k: v.default for k, v in sig.parameters.items() if isinstance(v.default, typing.Awaitable)
+        }
+        if default_kwargs and kwargs:
+            kwargs = default_kwargs | kwargs
+        elif default_kwargs:
+            kwargs = default_kwargs
+        for key, val in tuple(kwargs.items()):
+            if isinstance(val, typing.Awaitable):
+                try:
+                    kwargs[key] = await val
+                except Exception as ex:
+                    kwargs[key] = ex
+        return fn(*args, **kwargs)
 
     def wrapper(*args, **kwargs):
         if not is_async():
@@ -78,3 +83,4 @@ def gen(fn):
                 return ex.value
 
     return wrapper
+

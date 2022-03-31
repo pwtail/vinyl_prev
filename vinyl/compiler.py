@@ -143,29 +143,49 @@ class SQLInsertCompiler(ExecuteMixin, _compiler.SQLInsertCompiler):
         connection = connections[self.using]
         return connection.cursor(self._execute_sql)
 
+    #FIXME self.connection
+
     def _execute_sql(self, *, cursor):
         "Always returns pk's of inserted objects"
         opts = self.query.get_meta()
 
         [(sql, params)] = self.as_sql()
-        _ = cursor.execute(sql, params)
+        execute = cursor.execute(sql, params)
 
-        last_insert_id = self.connection.ops.last_insert_id(
-            cursor,
-            opts.db_table,
-            opts.pk.column,
-        ),
+        # await execute
+        return cursor.fetchone()
 
-        @later
-        def _execute_sql(_=_, last_insert_id=last_insert_id):
-            assert len(self.query.objs) == 1
-            rows = [
-                (last_insert_id,)
-            ]
-            cols = [opts.pk.get_col(opts.db_table)]
-            converters = self.get_converters(cols)
-            if converters:
-                rows = list(self.apply_converters(rows, converters))
-            return rows
+        if self.connection.features.can_return_columns_from_insert:
+            fetched_columns = self.connection.ops.fetch_returned_insert_columns(
+                cursor,
+                None,
+            )
+            @later
+            def get_rows(execute=execute, fetched_columns=fetched_columns):
+                return [
+                    fetched_columns
+                ]
+        else:
+            last_insert_id = self.connection.ops.last_insert_id(
+                cursor,
+                opts.db_table,
+                opts.pk.column,
+            )
 
-        return _execute_sql()
+            @later
+            def get_rows(execute=execute, last_insert_id=last_insert_id):
+                return [
+                    (last_insert_id,)
+                ]
+
+        rows = get_rows()
+        return self._convert_rows(rows=rows)
+
+    @later
+    def _convert_rows(self, *, rows):
+        opts = self.query.get_meta()
+        cols = [opts.pk.get_col(opts.db_table)]
+        converters = self.get_converters(cols)
+        if converters:
+            rows = list(self.apply_converters(rows, converters))
+        return rows

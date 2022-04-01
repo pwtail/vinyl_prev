@@ -241,24 +241,68 @@ class VinylModel(_Model, metaclass=NoMetaclass):
 
 class VModel:
 
-    def insert(self, using=None):
-        # using = using or router.db_for_write(self.model, instance=obj)
-        using = 'vinyl_default'
-        meta = self._meta
-        query = sql.InsertQuery(meta.model)
+
+
+    def _insert_table(
+        self,
+        raw=False,
+        using=None,
+        update_fields=None,
+    ):
+        """
+        Do the heavy-lifting involved in saving. Update or insert the data
+        for a single table.
+        """
+        cls = self.__class__
+        meta = cls._meta
+
+        pk_val = getattr(self, meta.pk.attname)
+        if pk_val is None:
+            pk_val = meta.pk.get_pk_value_on_save(self)
+            setattr(self, meta.pk.attname, pk_val)
+        pk_set = pk_val is not None
+
         fields = meta.local_concrete_fields
+        if not pk_set:
+            fields = [f for f in fields if f is not meta.auto_field]
+
         returning_fields = meta.db_returning_fields
-        fields = [f for f in fields if f is not meta.auto_field]
-        query.insert_values(fields, [self])
-        rows = query.get_compiler(using=using).execute_sql(returning_fields)
+        results = meta.model.vinyl._insert(
+            [self],
+            fields=fields,
+            returning_fields=returning_fields,
+            using=using,
+            raw=raw,
+        )
 
         @later
-        def insert(rows=rows):
-            if rows:
-                for value, field in zip(rows[0], returning_fields):
+        def insert(results=results):
+            if results:
+                for value, field in zip(results[0], returning_fields):
                     setattr(self, field.attname, value)
 
         return insert()
+
+    insert = _insert_table
+
+    # def insert(self, using=None):
+    #     # using = using or router.db_for_write(self.model, instance=obj)
+    #     using = 'vinyl_default'
+    #     meta = self._meta
+    #     query = sql.InsertQuery(meta.model)
+    #     fields = meta.local_concrete_fields
+    #     returning_fields = meta.db_returning_fields
+    #     fields = [f for f in fields if f is not meta.auto_field]
+    #     query.insert_values(fields, [self])
+    #     rows = query.get_compiler(using=using).execute_sql(returning_fields)
+    #
+    #     @later
+    #     def insert(rows=rows):
+    #         if rows:
+    #             for value, field in zip(rows[0], returning_fields):
+    #                 setattr(self, field.attname, value)
+    #
+    #     return insert()
 
 
 def get_vinyl_model(model_cls):

@@ -10,7 +10,7 @@ from django.db.models.query import get_related_populators
 from django.forms import IntegerField
 
 from vinyl import iterables
-from vinyl.model import make_model_class
+
 from vinyl.futures import gen, is_async, later
 
 from django.db.models import Model as _Model
@@ -22,11 +22,6 @@ class VinylQuerySet(QuerySet):
     def db(self):
         db = super().db
         return f'vinyl_{db}'
-
-    def __init__(self, model=None, query=None, using=None, hints=None):
-        #FIXME
-        model = make_model_class(model)
-        super().__init__(model=model, query=query, using=using, hints=hints)
 
     def __iter__(self):
         self._fetch_all_()

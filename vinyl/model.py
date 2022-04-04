@@ -111,32 +111,12 @@ class VModel(ModelMixin):
 
     def delete(self, using=None):
         cls = self.__class__
-        meta = cls._meta
-        model = meta.model
-
-        #TODO
-        # results = meta.model.vinyl._delete(
-        #     [self],
-        #     using=using,
-        # )
-
-        query = sql.DeleteQuery(model)
-        query.clear_where()
-        query.add_filter(
-            meta.pk.attname,
-            self.pk,
+        model = cls._meta.model
+        num_rows = model.vinyl._delete(
+            [self],
+            using=using,
         )
-        cursor = query.get_compiler(using).execute_sql(CURSOR)
-
-        @later
-        def delete(cursor=cursor):
-            if cursor:
-                return cursor.rowcount
-            return 0
-
-        return delete()
-
-
+        return num_rows
 
 
 def get_vinyl_model(model_cls):

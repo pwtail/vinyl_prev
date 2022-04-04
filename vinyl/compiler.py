@@ -48,7 +48,7 @@ class ExecuteMixin:
             elif result_type == NO_RESULTS:
                 return None
             elif result_type == CURSOR:
-                return RetCursor(cursor.rowcount, cursor.lastrowid)
+                return RetCursor(cursor.rowcount, getattr(cursor, 'lastrowid', None))
 
         return execute_sql()
 
@@ -195,3 +195,7 @@ class SQLInsertCompiler(ExecuteMixin, _compiler.SQLInsertCompiler):
         if converters:
             rows = list(self.apply_converters(rows, converters))
         return rows
+
+
+class SQLDeleteCompiler(ExecuteMixin, _compiler.SQLDeleteCompiler):
+    pass

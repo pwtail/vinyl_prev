@@ -46,10 +46,13 @@ class ModelMixin:
 
 class VModel(ModelMixin):
 
+    def insert(self, cls=None):
+        if not cls:
+            return self._insert(self.__class__)
 
-
-    def _insert_table(
+    def _insert(
         self,
+        cls=None,
         raw=False,
         using=None,
         update_fields=None,
@@ -58,7 +61,6 @@ class VModel(ModelMixin):
         Do the heavy-lifting involved in saving. Update or insert the data
         for a single table.
         """
-        cls = self.__class__
         meta = cls._meta
 
         pk_val = getattr(self, meta.pk.attname)
@@ -88,7 +90,8 @@ class VModel(ModelMixin):
 
         return insert()
 
-    insert = _insert_table
+    insert = _insert
+    # insert = _insert_table
 
     def delete(self, using=None):
         cls = self.__class__
@@ -99,7 +102,7 @@ class VModel(ModelMixin):
         )
         return num_rows
 
-    def update(self, using=None, **kwargs):
+    def _update(self, cls=None, using=None, **kwargs):
         cls = self.__class__
         meta = cls._meta
 

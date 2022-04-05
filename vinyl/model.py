@@ -90,25 +90,6 @@ class VModel(ModelMixin):
 
     insert = _insert_table
 
-    # def insert(self, using=None):
-    #     # using = using or router.db_for_write(self.model, instance=obj)
-    #     using = 'vinyl_default'
-    #     meta = self._meta
-    #     query = sql.InsertQuery(meta.model)
-    #     fields = meta.local_concrete_fields
-    #     returning_fields = meta.db_returning_fields
-    #     fields = [f for f in fields if f is not meta.auto_field]
-    #     query.insert_values(fields, [self])
-    #     rows = query.get_compiler(using=using).execute_sql(returning_fields)
-    #
-    #     @later
-    #     def insert(rows=rows):
-    #         if rows:
-    #             for value, field in zip(rows[0], returning_fields):
-    #                 setattr(self, field.attname, value)
-    #
-    #     return insert()
-
     def delete(self, using=None):
         cls = self.__class__
         model = cls._meta.model
@@ -117,6 +98,36 @@ class VModel(ModelMixin):
             using=using,
         )
         return num_rows
+
+    def update(self, using=None, **kwargs):
+        cls = self.__class__
+        meta = cls._meta
+
+        def values():
+            for field in meta.local_concrete_fields:
+                if field.primary_key:
+                    continue
+                if field.name in kwargs:
+                    yield field, None, kwargs[field.name]
+
+        values = tuple(values())
+
+        pk_val = self._get_pk_val(meta)
+        base_qs = meta.model.vinyl.using(using)
+        cursor = base_qs.filter(pk=pk_val)._update(values)
+
+        # TODO returning
+
+        @later
+        def update(cursor=cursor):
+            count = cursor.rowcount if cursor else 0
+            if count == 1:
+                for field, _, value in values:
+                    setattr(self, field.attname, value)
+                return True
+            return False
+
+        return update()
 
 
 def get_vinyl_model(model_cls):

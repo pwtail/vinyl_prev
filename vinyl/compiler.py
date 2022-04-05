@@ -76,47 +76,7 @@ class SQLCompiler(ExecuteMixin, _compiler.SQLCompiler):
         def ret(result=result):
             return bool(result)
         return ret()
-    #
-    # def apply_converters_(self, rows):
-    #     fields = [s[0] for s in self.select[0:self.col_count]]
-    #     converters = self.get_converters(fields)
-    #     if not converters:
-    #         return rows
-    #     connection = self.connection
-    #     converters = list(converters.items())
-    #     rows = [list(row) for row in rows]
-    #     for row in rows:
-    #         for pos, (convs, expression) in converters:
-    #             value = row[pos]
-    #             for converter in convs:
-    #                 value = converter(value, expression, connection)
-    #             row[pos] = value
-    #     return rows
 
-
-class SQLUpdateCompiler(ExecuteMixin, _compiler.SQLUpdateCompiler):
-    #FIXME
-    @gen
-    def execute_sql(self, result_type):
-        """
-        Execute the specified update. Return the number of rows affected by
-        the primary update query. The "primary update query" is the first
-        non-empty query that is executed. Row counts for any subsequent,
-        related queries are not available.
-        """
-        cursor = yield super().execute_sql(result_type)
-        try:
-            rows = cursor.rowcount if cursor else 0
-            is_empty = cursor is None
-        finally:
-            if cursor:
-                cursor.close()
-        for query in self.query.get_related_updates():
-            aux_rows = yield query.get_compiler(self.using).execute_sql(result_type)
-            if is_empty and aux_rows:
-                rows = aux_rows
-                is_empty = False
-        return rows
 
 
 class RetCursor(typing.NamedTuple):
@@ -198,4 +158,8 @@ class SQLInsertCompiler(ExecuteMixin, _compiler.SQLInsertCompiler):
 
 
 class SQLDeleteCompiler(ExecuteMixin, _compiler.SQLDeleteCompiler):
+    pass
+
+
+class SQLUpdateCompiler(ExecuteMixin, _compiler.SQLUpdateCompiler):
     pass

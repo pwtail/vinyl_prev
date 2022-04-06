@@ -166,3 +166,7 @@ class SQLDeleteCompiler(ExecuteMixin, _compiler.SQLDeleteCompiler):
 
 class SQLUpdateCompiler(ExecuteMixin, _compiler.SQLUpdateCompiler):
     pass
+
+
+class SQLAggregateCompiler(ExecuteMixin, _compiler.SQLAggregateCompiler):
+    pass

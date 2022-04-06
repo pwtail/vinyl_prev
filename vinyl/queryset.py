@@ -83,13 +83,3 @@ class VinylQuerySet(QuerySet):
 
 class VinylManager(DjangoManager.from_queryset(VinylQuerySet)):
     pass
-    # def bulk_insert(self, objs):
-    #     using = self.db
-    #     query = sql.InsertQuery(
-    #         self.model,
-    #         on_conflict=on_conflict,
-    #         update_fields=update_fields,
-    #         unique_fields=unique_fields,
-    #     )
-    #     query.insert_values(fields, objs, raw=raw)
-    #     return query.get_compiler(using=using).execute_sql(returning_fields)

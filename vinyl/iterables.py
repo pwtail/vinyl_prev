@@ -124,10 +124,9 @@ class ValuesListIterable(BaseIterable):
     for each row.
     """
 
-    async def __aiter__(self):
+    def make_objects(self, compiler, rows):
         queryset = self.queryset
         query = queryset.query
-        compiler = query.get_compiler(queryset.db)
 
         if queryset._fields:
             # extra(select=...) cols are always at the start of the row.
@@ -144,12 +143,11 @@ class ValuesListIterable(BaseIterable):
                 # Reorder according to fields.
                 index_map = {name: idx for idx, name in enumerate(names)}
                 rowfactory = operator.itemgetter(*[index_map[f] for f in fields])
-                #TODO
-                async for row in compiler.convert_rows(rows):
+                for row in compiler.convert_rows(rows):
                     yield rowfactory(row)
-
-        for row in compiler.convert_rows(rows, tuple_expected=True):
-            yield row
+        else:
+            for row in compiler.convert_rows(rows, tuple_expected=True):
+                yield row
 
 
 class NamedValuesListIterable(ValuesListIterable):
@@ -158,7 +156,7 @@ class NamedValuesListIterable(ValuesListIterable):
     namedtuple for each row.
     """
 
-    async def __aiter__(self):
+    def make_objects(self, compiler, rows):
         queryset = self.queryset
         if queryset._fields:
             names = queryset._fields
@@ -171,7 +169,7 @@ class NamedValuesListIterable(ValuesListIterable):
             ]
         tuple_class = create_namedtuple_class(*names)
         new = tuple.__new__
-        async for row in super().__aiter__():
+        for row in super().make_objects(compiler, rows):
             yield new(tuple_class, row)
 
 
@@ -181,9 +179,8 @@ class FlatValuesListIterable(BaseIterable):
     values.
     """
 
-    async def __aiter__(self):
+    def make_objects(self, compiler, rows):
         queryset = self.queryset
-        compiler = queryset.query.get_compiler(queryset.db)
 
-        async for row in compiler.results_iter():
+        for row in compiler.convert_rows(rows):
             yield row[0]

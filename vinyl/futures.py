@@ -17,7 +17,6 @@ threadlocal.IS_ASYNC = 1  # default
 def later(fn):
     assert not inspect.iscoroutinefunction(fn)
     sig = inspect.signature(fn)
-    # awaitables = [(k, v.default) for k, v in sig.parameters.items() if isinstance(v.default, typing.Awaitable)]
 
     async def awrapper(*args, **kwargs):
         default_kwargs = {

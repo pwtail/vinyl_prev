@@ -117,14 +117,36 @@ class VModel(ModelMixin):
 
     insert_with_parents = gen(_insert_with_parents)
 
-    def delete(self, using=None):
+    @property
+    def delete(self):
         cls = self.__class__
+        if cls._meta.parents:
+            return self.delete_with_parents
+        return self._delete
+
+    def _delete(self, cls=None, using=None):
+        if cls is None:
+            cls = self.__class__
         model = cls._meta.model
         num_rows = model.vinyl._delete(
             [self],
             using=using,
         )
         return num_rows
+
+    def _delete_with_parents(self, cls=None, using=None):
+        if cls is None:
+            cls = self.__class__
+        num_rows = yield self._delete(cls=cls, using=using)
+
+        for parent, field in cls._meta.parents.items():
+            count = yield from self._delete_with_parents(cls=parent, using=using)
+            num_rows += count
+
+        return num_rows
+
+    delete_with_parents = gen(_delete_with_parents)
+
 
     def _update(self, cls=None, using=None, **kwargs):
         cls = self.__class__

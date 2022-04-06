@@ -50,8 +50,6 @@ class ModelIterable(BaseIterable):
 
         model_cls = get_vinyl_model(model_cls)
 
-        #TODO
-
         select_fields = klass_info["select_fields"]
         model_fields_start, model_fields_end = select_fields[0], select_fields[-1] + 1
         init_list = [
@@ -180,7 +178,5 @@ class FlatValuesListIterable(BaseIterable):
     """
 
     def make_objects(self, compiler, rows):
-        queryset = self.queryset
-
         for row in compiler.convert_rows(rows):
             yield row[0]

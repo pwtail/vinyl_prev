@@ -1,18 +1,6 @@
-from django.db.models import sql, DEFERRED
-from django.db import router, connections
-from django.db.models import Model as _Model, Model, ExpressionWrapper, Max, Value, IntegerField
-from django.db.models.deletion import Collector
-from django.db.models.functions import Coalesce
-from django.db.models.query_utils import DeferredAttribute
-from django.db.models.sql.constants import CURSOR
-
+from django.db.models import DEFERRED
 from vinyl.futures import gen, later
-
-
-class NoMetaclass(type(Model)):
-
-    def __new__(cls, *args, **kwargs):
-        return type.__new__(cls, *args, **kwargs)
+from django.db import models
 
 
 class ModelMixin:
@@ -43,16 +31,18 @@ class ModelMixin:
         return new
 
 
+class VinylMeta:
+    def __get__(self, instance, owner):
+        return owner.model._meta
 
-class VModel(ModelMixin):
 
-    # @staticmethod
-    # def _get_parents_tree(cls):
-    #     meta = cls._meta
-    #     result = {}
-    #     for parent, field in meta.parents.items():
-    #         result[parent] = VModel._get_parents_tree(parent)
-    #     return result
+class VinylModel(ModelMixin):
+
+    _meta = VinylMeta()
+
+    def __init__(self, *args, **kwargs):
+        obj = self.model(*args, **kwargs)
+        self.__dict__ = obj.__dict__
 
     @property
     def insert(self):
@@ -187,22 +177,3 @@ def get_vinyl_model(model_cls):
     if hasattr(vmodels, name):
         return getattr(vmodels, name)
     assert 0
-    # getatt
-
-
-# def make_model_class(cls):
-#     bases = []
-#
-#     for base in cls.__bases__:
-#         if base is not Model:
-#             bases.append(base)
-#         else:
-#             bases.append(VinylModel)
-#     ns = {
-#         '_meta': cls._meta,
-#     }
-#     for key, val in cls.__dict__.items():
-#         if isinstance(val, DeferredAttribute):
-#             ns[key] = val
-#     new_cls = type(cls.__name__, tuple(bases), ns)
-#     return new_cls

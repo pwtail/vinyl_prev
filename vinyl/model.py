@@ -46,21 +46,28 @@ class ModelMixin:
 
 class VModel(ModelMixin):
 
-    def insert(self, cls=None):
-        if not cls:
-            return self._insert(self.__class__)
+    # @staticmethod
+    # def _get_parents_tree(cls):
+    #     meta = cls._meta
+    #     result = {}
+    #     for parent, field in meta.parents.items():
+    #         result[parent] = VModel._get_parents_tree(parent)
+    #     return result
+
+    @property
+    def insert(self):
+        cls = self.__class__
+        if cls._meta.parents:
+            return self.insert_with_parents
+        return self._insert
 
     def _insert(
         self,
         cls=None,
-        raw=False,
         using=None,
-        update_fields=None,
     ):
-        """
-        Do the heavy-lifting involved in saving. Update or insert the data
-        for a single table.
-        """
+        if cls is None:
+            cls = self.__class__
         meta = cls._meta
 
         pk_val = getattr(self, meta.pk.attname)
@@ -79,7 +86,6 @@ class VModel(ModelMixin):
             fields=fields,
             returning_fields=returning_fields,
             using=using,
-            raw=raw,
         )
 
         @later
@@ -90,8 +96,26 @@ class VModel(ModelMixin):
 
         return insert()
 
-    insert = _insert
-    # insert = _insert_table
+    def _insert_with_parents(self, cls=None, using=None):
+        if cls is None:
+            cls = self.__class__
+        meta = cls._meta
+
+        for parent, field in meta.parents.items():
+            # Make sure the link fields are synced between parent and self.
+            if (
+                field
+                and getattr(self, parent._meta.pk.attname) is None
+                and getattr(self, field.attname) is not None
+            ):
+                setattr(self, parent._meta.pk.attname, getattr(self, field.attname))
+            yield from self._insert_with_parents(cls=parent, using=using)
+            if field:
+                setattr(self, field.attname, self._get_pk_val(parent._meta))
+
+        yield self._insert(cls=cls, using=using)
+
+    insert_with_parents = gen(_insert_with_parents)
 
     def delete(self, using=None):
         cls = self.__class__

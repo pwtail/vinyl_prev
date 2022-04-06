@@ -16,12 +16,14 @@ class BaseDatabaseWrapper(_BaseDatabaseWrapper):
     def cursor_decorator(self, fn):
         async def awrapper(*args, **kwargs):
             async with self.cursor() as cursor:
-                return await fn(*args, cursor=cursor, **kwargs)
+                val = fn(*args, cursor=cursor, **kwargs)
+                return await val
 
         def wrapper(*args, **kwargs):
             if not is_async():
                 with self.cursor() as cursor:
-                    return fn(*args, cursor=cursor, **kwargs)
+                    val = fn(*args, cursor=cursor, **kwargs)
+                    return val
             return awrapper(*args, **kwargs)
 
         return wrapper

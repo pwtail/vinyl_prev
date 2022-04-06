@@ -29,10 +29,10 @@ def later(fn):
             kwargs = default_kwargs
         for key, val in tuple(kwargs.items()):
             if isinstance(val, typing.Awaitable):
-                try:
-                    kwargs[key] = await val
-                except Exception as ex:
-                    kwargs[key] = ex
+                # try:
+                kwargs[key] = await val
+                # except Exception as ex:
+                #     kwargs[key] = ex
         return fn(*args, **kwargs)
 
     def wrapper(*args, **kwargs):

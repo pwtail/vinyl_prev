@@ -117,7 +117,10 @@ class SQLInsertCompiler(ExecuteMixin, _compiler.SQLInsertCompiler):
         execute = cursor.execute(sql, params)
 
         if not self.returning_fields:
-            return []
+            @later
+            def empty(execute=execute):
+                return []
+            return empty()
         if (
             self.connection.features.can_return_rows_from_bulk_insert
             and len(self.query.objs) > 1

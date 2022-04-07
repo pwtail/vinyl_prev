@@ -6,7 +6,7 @@ from django.db.models.query import MAX_GET_RESULTS
 
 from vinyl import iterables
 
-from vinyl.futures import later
+from vinyl.futures import later, is_async
 from vinyl.query import VinylQuery
 
 
@@ -99,6 +99,8 @@ class VinylQuerySet(QuerySet):
 
         @later
         def get(_=clone):
+            if not is_async():
+                clone._fetch_all_()
             return clone._get(limit=limit)
 
         return get()

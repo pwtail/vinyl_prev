@@ -37,8 +37,15 @@ class VinylMeta:
 
 
 class VinylModel(ModelMixin):
+    _model = None
 
+    #?
     _meta = VinylMeta()
+
+    def __new__(cls, *args, **kwargs):
+        ob = cls._model(*args, **kwargs)
+        ob.__class__ = cls
+        return ob
 
     @property
     def insert(self):
@@ -178,13 +185,13 @@ def get_vinyl_model(model_cls):
 
     name = model_cls.__name__
 
-    def __new__(cls, *args, **kwargs):
-        ob = model_cls(*args, **kwargs)
-        ob.__class__ = cls
-        return ob
+    # def __new__(cls, *args, **kwargs):
+    #     ob = model_cls(*args, **kwargs)
+    #     ob.__class__ = cls
+    #     return ob
 
     model = type(
-        name, (VinylModel,), {'__new__': __new__, '_model': model_cls}
+        name, (VinylModel,), {}  # {'_model': model_cls}
     )
     vinyl_models[model_cls] = model
     return model

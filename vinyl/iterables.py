@@ -48,6 +48,7 @@ class ModelIterable(BaseIterable):
         )
         model_cls = klass_info["model"]
 
+        #FIXME #FIXME
         model_cls = get_vinyl_model(model_cls)
 
         select_fields = klass_info["select_fields"]

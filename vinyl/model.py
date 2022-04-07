@@ -33,16 +33,12 @@ class ModelMixin:
 
 class VinylMeta:
     def __get__(self, instance, owner):
-        return owner.model._meta
+        return owner._model._meta
 
 
 class VinylModel(ModelMixin):
 
     _meta = VinylMeta()
-
-    def __init__(self, *args, **kwargs):
-        obj = self.model(*args, **kwargs)
-        self.__dict__ = obj.__dict__
 
     @property
     def insert(self):
@@ -71,7 +67,10 @@ class VinylModel(ModelMixin):
             fields = [f for f in fields if f is not meta.auto_field]
 
         returning_fields = meta.db_returning_fields
-        results = meta.model.vinyl._insert(
+        from vinyl.manager import _VinylManager
+        manager = _VinylManager()
+        manager.model = get_vinyl_model(meta.model)
+        results = manager._insert(
             [self],
             fields=fields,
             returning_fields=returning_fields,
@@ -117,8 +116,10 @@ class VinylModel(ModelMixin):
     def _delete(self, cls=None, using=None):
         if cls is None:
             cls = self.__class__
-        model = cls._meta.model
-        num_rows = model.vinyl._delete(
+        from vinyl.manager import _VinylManager
+        manager = _VinylManager()
+        manager.model = get_vinyl_model(cls._meta.model)
+        num_rows = manager._delete(
             [self],
             using=using,
         )
@@ -169,11 +170,21 @@ class VinylModel(ModelMixin):
         return update()
 
 
+vinyl_models = {}
+
 def get_vinyl_model(model_cls):
-    app_label = model_cls._meta.app_label
+    if model := vinyl_models.get(model_cls):
+        return model
+
     name = model_cls.__name__
-    from importlib import import_module
-    vmodels = import_module(f'{app_label}.vmodels')
-    if hasattr(vmodels, name):
-        return getattr(vmodels, name)
-    assert 0
+
+    def __new__(cls, *args, **kwargs):
+        ob = model_cls(*args, **kwargs)
+        ob.__class__ = cls
+        return ob
+
+    model = type(
+        name, (VinylModel,), {'__new__': __new__, '_model': model_cls}
+    )
+    vinyl_models[model_cls] = model
+    return model

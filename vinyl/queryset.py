@@ -1,5 +1,5 @@
 from django.db import connections, NotSupportedError
-from django.db.models import Manager as DjangoManager, Count, sql
+from django.db.models import sql
 from django.db.models import QuerySet
 from django.db.models.sql.constants import CURSOR
 from django.db.models.query import MAX_GET_RESULTS
@@ -119,6 +119,3 @@ class VinylQuerySet(QuerySet):
             )
         )
 
-
-class VinylManager(DjangoManager.from_queryset(VinylQuerySet)):
-    pass

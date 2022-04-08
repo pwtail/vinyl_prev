@@ -42,6 +42,7 @@ class VinylModel(ModelMixin):
     #?
     _meta = VinylMeta()
 
+    #TODO __init__?
     def __new__(cls, *args, **kwargs):
         ob = cls._model(*args, **kwargs)
         ob.__class__ = cls
@@ -76,6 +77,7 @@ class VinylModel(ModelMixin):
         returning_fields = meta.db_returning_fields
         from vinyl.manager import _VinylManager
         manager = _VinylManager()
+        #FIXME
         manager.model = get_vinyl_model(meta.model)
         results = manager._insert(
             [self],
@@ -185,13 +187,8 @@ def get_vinyl_model(model_cls):
 
     name = model_cls.__name__
 
-    # def __new__(cls, *args, **kwargs):
-    #     ob = model_cls(*args, **kwargs)
-    #     ob.__class__ = cls
-    #     return ob
-
     model = type(
-        name, (VinylModel,), {}  # {'_model': model_cls}
+        name, (VinylModel,), {'_model': model_cls}
     )
     vinyl_models[model_cls] = model
     return model

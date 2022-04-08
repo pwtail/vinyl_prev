@@ -77,8 +77,7 @@ class VinylModel(ModelMixin):
         returning_fields = meta.db_returning_fields
         from vinyl.manager import _VinylManager
         manager = _VinylManager()
-        #FIXME
-        manager.model = get_vinyl_model(meta.model)
+        manager.model = ensure_vinyl_model(meta.model)
         results = manager._insert(
             [self],
             fields=fields,
@@ -127,7 +126,7 @@ class VinylModel(ModelMixin):
             cls = self.__class__
         from vinyl.manager import _VinylManager
         manager = _VinylManager()
-        manager.model = get_vinyl_model(cls._meta.model)
+        manager.model = ensure_vinyl_model(cls._meta.model)
         num_rows = manager._delete(
             [self],
             using=using,
@@ -181,14 +180,15 @@ class VinylModel(ModelMixin):
 
 vinyl_models = {}
 
-def get_vinyl_model(model_cls):
+
+def ensure_vinyl_model(model_cls):
+    if issubclass(model_cls, VinylModel):
+        return model_cls
     if model := vinyl_models.get(model_cls):
         return model
 
-    name = model_cls.__name__
-
     model = type(
-        name, (VinylModel,), {'_model': model_cls}
+        model_cls.__name__, (VinylModel,), {'_model': model_cls}
     )
     vinyl_models[model_cls] = model
     return model

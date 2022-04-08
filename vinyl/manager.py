@@ -1,7 +1,7 @@
 from django.db.models.manager import BaseManager, ManagerDescriptor
 from django.db import models
 
-from vinyl.model import get_vinyl_model, VinylModel
+from vinyl.model import ensure_vinyl_model, VinylModel
 from vinyl.queryset import VinylQuerySet
 
 
@@ -28,10 +28,9 @@ class VinylManagerDescriptor(ManagerDescriptor):
     def __set_name__(self, owner, name):
         assert issubclass(owner, models.Model)
         self.manager.name = name
-        assert owner
 
         if not (model := self.manager.model):
-            model = get_vinyl_model(owner)
+            model = ensure_vinyl_model(owner)
             self.manager.model = model
         model._model = owner
 

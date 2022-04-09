@@ -121,3 +121,27 @@ class VinylQuerySet(QuerySet):
             )
         )
 
+    def first(self):
+        qs = (self if self.ordered else self.order_by("pk"))[:1]
+
+        @later
+        def first(qs=qs):
+            if not is_async():
+                qs._fetch_all_()
+            for obj in qs:
+                return obj
+
+        return first()
+
+    def last(self):
+        qs = (self.reverse() if self.ordered else self.order_by("-pk"))[:1]
+
+        @later
+        def last(qs=qs):
+            if not is_async():
+                qs._fetch_all_()
+            for obj in qs:
+                return obj
+
+        return last()
+

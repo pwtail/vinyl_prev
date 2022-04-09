@@ -4,7 +4,7 @@
 django projects. Unlike the approach taken by django project, it is native 
 asynchrony that is supported.
 
-Seamless integration
+**Seamless integration**
 
 It doesn't break the existing code of your projects, and uses `django` as a 
 dependency (instead of forking it). reused
@@ -24,6 +24,17 @@ class Artifact(models.Model):
 ```
 
 The last row is all you need to add to your django models to start using vinyl.
+Thus, the main entry point is still the models:
+
+```python
+from app.models import Artifact
+
+```
+
+
+
+
+**Sync and async**
 
 For example, qs
 

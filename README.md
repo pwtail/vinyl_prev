@@ -136,7 +136,7 @@ however it is largely independent code, in a sense that it doesn't fork django
 and is almost unaffected by the particular version of django used.
 
 So, *vinyl* has relative freedom to change things, and is 
-going to use that for its own benefit.
+going to use that freedom for its benefit.
 
 Generally speaking, one should be able to use existing models as they are with 
 *vinyl*.

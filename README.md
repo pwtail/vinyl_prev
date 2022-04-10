@@ -143,12 +143,13 @@ Generally speaking, one should be able to use existing models as they are with
 
 However, there is intention to make the rules of models inheritance more 
 strict, given that covers the majority of usecases. For example, to allow 
-to inherit from a single concrete model only, that model being the primary 
-key for the descendant models. This will probably simplify things, and will 
-make easier for bulk operations to be aware of inheritance chains too. 
-There 
+to inherit from a single concrete model only, so that all models in the 
+inheritance chain would share the same primary key. This will probably simplify 
+things a lot, and will 
+make easier for bulk operations to support inheritance too. 
+Of course, there 
 could be utility 
-functions for working with existing setups, of course.
+functions for working with existing setups.
 
 *vinyl* does change the API for CRUD operations with objects and does not 
 support lazy attributes that need to fetch data on demand.

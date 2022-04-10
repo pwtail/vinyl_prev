@@ -138,7 +138,7 @@ and is almost unaffected by the particular version of django used.
 So, *vinyl* has relative freedom to change things, and is 
 going to use that freedom for its benefit.
 
-Generally speaking, one should be able to use existing models as they are with 
+As a rule, one should be able to use existing models as they are with 
 *vinyl*.
 
 However, there is intention to make the rules of models inheritance more 

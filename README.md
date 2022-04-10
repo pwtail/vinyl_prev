@@ -6,10 +6,11 @@ django project, it supports **native asynchrony**.
 
 **Seamless integration**
 
-It doesn't break the existing code of your projects, and uses `django` as a 
-dependency (instead of forking it). reused
+*vinyl* doesn't break the existing code of your projects, and can be used as 
+a plug-in.
 
-*vinyl* uses django extensibility features a bit more than the official documentation recommends.
+It uses django extensibility features to a bit more extent than the official 
+documentation recommends.
 Indeed, django is pretty 
 extensible, as a result of the need of supporting a lot of database 
 backends as well as supporting multiple databases at once.

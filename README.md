@@ -2,7 +2,7 @@
 
 *vinyl* is a third-party package that allows existing 
 django projects to be used in async context. Unlike the approach taken by the
-django project, it is **native asynchrony** that is supported.
+django project, *vinyl* supports **native asynchrony**.
 
 **Seamless integration**
 

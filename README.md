@@ -144,7 +144,7 @@ are fed up with), which without the async features is doomed to extinction.
 
 **Further development**
 
-I really don't think that such project (adding async capabilities to django) 
+I don't think that such a project (adding async capabilities to django) 
 should be developed as a personal project. It is not, it's actually further 
 development of django. So the author will probably do the development as an 
 employee of a company that uses django extensively.

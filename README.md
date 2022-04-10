@@ -27,7 +27,7 @@ class Artifact(models.Model):
 ```
 
 The last row is all you need to add to your django models to start using vinyl.
-Thus, the main entry point is still the models:
+Thus, the main entry point is still the model:
 
 ```python
 from app.models import Artifact

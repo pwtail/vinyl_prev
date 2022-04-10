@@ -98,7 +98,7 @@ reacher functionality than many other pure-async frameworks.
 
 Signals are gone in *vinyl*. So is the lazy iteration of querysets, when the 
 result of the queryset doesn't fit in the memory (a really half-baked 
-feature in django, that is used very rarely).
+feature in django, that is used very rarely anyway).
 
 **Model classes**
 

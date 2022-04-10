@@ -50,13 +50,13 @@ use the sync version, all you have to do is to set the respective flag:
 from vinyl import set_async; set_async(False)
 ```
 
-In addition to the sync version of *vinyl*, of course, all of django is 
-still available, and django provides more capabilites, since *vinyl* is more 
-minimalistic. Still, I think, having sync version is important for various 
-reasons, the obvious ones being testability and documentation.
-
-The time will tell, but I think, the sync version of *vinyl* will be used 
-widely too.
+In addition to the sync version of *vinyl*, all of django functionality is 
+still available. Actually, django provides a richer API, since 
+*vinyl* is 
+more 
+minimalistic. Still, having the sync version is important for various 
+reasons, the obvious ones being testability and documentation. The time will tell,
+but I think, the sync version of *vinyl* will be used widely too.
 
 **Minimalistic API**
 

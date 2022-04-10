@@ -65,7 +65,7 @@ but I think, the sync version of *vinyl* will be used widely too.
 
 As was said already, *vinyl* provides a more minimalistic API than django. 
 That's because not all 
-decisions in django are a good fit for a universl framework, supporting both 
+decisions in django are a good fit for a universal framework, supporting both 
 sync 
 and async modes at the same time.
 
@@ -77,12 +77,6 @@ Speaking of the CRUD operations with objects (model instances), the API
 starts to be different, being more minimalistic and more explicit. 
 For example, currently, there is no `obj.save()` method, with `.insert()` and `.
 update()` being provided instead.
-
-Model inheritance is currently supported as-is, but there is a plan to cut 
-that functionality down a bit too. For example, to allow to inherit from one 
-concrete model at most, thus forcing all inheritance chain to have the same 
-primary key. This will greatly simplify things, and will make possible to 
-make bulk operations aware of inheritance chains too.
 
 **Lazy attributes**
 
@@ -146,8 +140,14 @@ going to use that for its own benefit.
 
 Generally speaking, one should be able to use existing models as they are with 
 *vinyl*.
+
 However, there is intention to make the rules of models inheritance more 
-strict, given that covers the majority of usecases. There could be utility 
+strict, given that covers the majority of usecases. For example, to allow 
+to inherit from a single concrete model only, that model being the primary 
+key for the descendant models. This will probably simplify things, and will 
+make easier for bulk operations to be aware of inheritance chains too. 
+There 
+could be utility 
 functions for working with existing setups, of course.
 
 *vinyl* does change the API for CRUD operations with objects and does not 

@@ -63,9 +63,11 @@ but I think, the sync version of *vinyl* will be used widely too.
 
 **Minimalistic API**
 
-As ws said, *vinyl* provides a more minimalistic API. Not all 
-decisions in django are a good fit for a universl framework, supporting sync 
-and async usecases at the same time.
+As was said already, *vinyl* provides a more minimalistic API than django. 
+That's because not all 
+decisions in django are a good fit for a universl framework, supporting both 
+sync 
+and async modes at the same time.
 
 Regarding the query builder (queryset usage), *vinyl* fully copies the 
 django API. The querysets are lazy in django, so this is pretty cheap to 

@@ -1,4 +1,4 @@
-# vinyl project - asynchrony for django
+# vinyl project: the async capabilities for django
 
 *vinyl* is a third-party package that adds async capabilities to existing 
 django projects. Unlike the approach taken by django project, it is **native 

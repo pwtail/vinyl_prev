@@ -37,9 +37,9 @@ if not await Artifact.vinyl.exists():
     await ob.insert()
 ```
 
-Queries using `vinyl` manager return instances of `VinylModel`. To create 
-such an instance you have to explicitly use the manager: `MyModel.vinyl
-(**kwargs)`
+Queries using `vinyl` manager return instances of `VinylModel`. However, to 
+create 
+such an instance you have to explicitly use the manager: `MyModel.vinyl(**kwargs)`
 
 **Sync and async**
 

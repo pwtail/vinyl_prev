@@ -1,8 +1,8 @@
 # vinyl project - asynchrony for django
 
 *vinyl* is a third-party package that adds async capabilities to existing 
-django projects. Unlike the approach taken by django project, it is native 
-asynchrony that is supported.
+django projects. Unlike the approach taken by django project, it is **native 
+asynchrony** that is supported.
 
 **Seamless integration**
 
@@ -103,8 +103,10 @@ feature in django, that is used very rarely).
 **Model classes**
 
 By default, *vinyl* will create subclasses of `VinylModel` for your django 
-models on demand. But you can create these classes explicitly, and start 
-adding custom methods to it.
+models by default. But you can create these classes explicitly if you want, and 
+start 
+adding custom methods to it. Than it should be passed to `VinylManager` as 
+shown below.
 
 ```python
 # custom.py
@@ -121,20 +123,28 @@ class Artifact(models.Model):
     vinyl = VinylManager(model=custom.Artifact)
 ```
 
-Особенности:
+**Database support**
 
-- синхронный и (нативный) асинхронный I/O, поддержанный одной кодовой базой
-- можно использовать в имеющихся django проектах: есть совместимость с 
-  django по 
-  моделям.
+*vinyl* aims to support Postgresql, MariaDb and MySql. The latter two are 
+pretty similar so that means 2 database backends with sync and async drivers.
 
-Будут поддерживаться базы Postgresql, MariaDb, Mysql
 
-Что касается запросов (querysets), проект сохранит апи django как он есть. 
-  Что касается действий с объектами (инстансами моделей), апи станет гораздо 
-  более минималистичным.
+**Unique features. The summary**
 
-Несмотря на то, что django уже является синхронным 
-фреймворком, vinyl будет также содержать свою синхронную версию, апи которой 
-будет зеркальным отражением асинхронной версии. Таким образом, vinyl 
-будет независимым от django фреймворком.
+First of all, *vinyl* is the first ORM that supports both sync and async 
+modes (actually there is the third too which is vanilla django). That opens 
+the way for a web application that has both ASGI and WSGI endpoints sharing 
+the same environment (and the database of course).
+
+Next, it is the only projects that provides integration between the django 
+project and your asynchronous code.
+
+Also, it's a shameless try to revive django (which the most of developers 
+are fed up with), which without the async features is doomed to extinction.
+
+**Further development**
+
+I really don't think that such project (adding async capabilities to django) 
+should be developed as a personal project. It is not, it's actually further 
+development of django. So the author will probably do the development as an 
+employee of a company that uses django extensively.

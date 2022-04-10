@@ -151,7 +151,8 @@ Of course, there
 could be utility 
 functions for working with existing setups.
 
-*vinyl* does change the API for CRUD operations with objects and does not 
+As was said above, *vinyl* does change the API for CRUD operations with objects 
+and does not 
 support lazy attributes that need to fetch data on demand.
 
 **Unique features. The summary**

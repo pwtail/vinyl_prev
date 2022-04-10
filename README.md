@@ -113,7 +113,8 @@ shown below.
 class Artifact(VinylModel):
 
     async def insert(self):
-        pass
+        await super().insert()
+        print(f"inserted: {self.pk}")
 
 # models.py
 

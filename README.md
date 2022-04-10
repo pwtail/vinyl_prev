@@ -60,17 +60,16 @@ but I think, the sync version of *vinyl* will be used widely too.
 
 **Minimalistic API**
 
-*vinyl* is independent from django code-wise, so it's an opportunity to 
-make things different and better, from a certain perspective. Not all 
+As ws said, *vinyl* provides a more minimalistic API. Not all 
 decisions in django are a good fit for a universl framework, supporting sync 
-and async usecase at the same time.
+and async usecases at the same time.
 
 Regarding the query builder (queryset usage), *vinyl* fully copies the 
 django API. The querysets are lazy in django, so this is pretty cheap to 
 provide.
 
 Speaking of the CRUD operations with objects (model instances), the API 
-starts to be different, providing more minimalistic (and more explicit) API. 
+starts to be different, being more minimalistic and more explicit. 
 For example, currently, there is no `obj.save()` method, with `.insert()` and `.
 update()` being provided instead.
 

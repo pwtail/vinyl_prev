@@ -1,7 +1,9 @@
 # vinyl project: the async capabilities for django
 
 *vinyl* is a third-party package that allows existing 
-django projects to be used in async context. Unlike the approach taken by the
+django projects to be used in async context.
+
+Unlike the approach taken by the
 django project, it supports **native asynchrony**.
 
 **Seamless integration**
@@ -26,7 +28,8 @@ class Artifact(models.Model):
     vinyl = VinylManager()
 ```
 
-The last row is all you need to add to your django models to start using vinyl.
+The last row is all you need to add to your django models to start using 
+*vinyl*.
 Thus, the main entry point is still the model:
 
 ```python

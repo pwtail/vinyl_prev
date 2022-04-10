@@ -12,7 +12,7 @@ a plug-in.
 It uses django extensibility features to a bit more extent than the official 
 documentation recommends.
 Indeed, django is pretty 
-extensible, as a result of the need of supporting a lot of database 
+extensible, which is the result of the need of supporting a lot of database 
 backends as well as supporting multiple databases at once.
 
 **VinylManager**

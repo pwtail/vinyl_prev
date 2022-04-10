@@ -44,7 +44,7 @@ such an instance you have to explicitly use the manager: `MyModel.vinyl(**kwargs
 **Sync and async**
 
 *vinyl* provides both sync and async API, which reflect each other 100%. To 
-use the sync version, all you have to do is set the respective flag:
+use the sync version, all you have to do is to set the respective flag:
 
 ```python
 from vinyl import set_async; set_async(False)

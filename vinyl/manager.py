@@ -23,6 +23,8 @@ class VinylManagerDescriptor(ManagerDescriptor):
 
     def __get__(self, instance, owner):
         assert self.manager
+        #FIXME!
+        self.manager.model.setup()
         return self.manager
 
     def __set_name__(self, owner, name):

@@ -7,6 +7,7 @@ from django.db.models.query import MAX_GET_RESULTS
 from vinyl import iterables
 
 from vinyl.futures import later, is_async
+from vinyl.prefetch import prefetch_related_objects
 from vinyl.query import VinylQuery
 
 
@@ -19,10 +20,13 @@ class VinylQuerySet(QuerySet):
     @property
     def db(self):
         db = super().db
+        if db.startswith('vinyl_'):
+            return db
         return f'vinyl_{db}'
 
     def __iter__(self):
-        self._fetch_all_()
+        if not is_async():
+            self._fetch_all_()
         return iter(self._result_cache)
 
     def get_vinyl_iterable_class(self):
@@ -32,24 +36,33 @@ class VinylQuerySet(QuerySet):
         iterable_class = self.get_vinyl_iterable_class()
         results = iterable_class(self).get_objects()
 
-        if self._prefetch_related_lookups and not self._prefetch_done:
-            prefetch = self._prefetch_related_objects()
-        else:
-            prefetch = None
-
         @later
-        def _fetch_all_(result_cache=results, prefetch=prefetch):
+        def _fetch_all_(result_cache=results):
             self._result_cache = result_cache
-            return result_cache
+            if self._prefetch_related_lookups and not self._prefetch_done:
+                return self._prefetch_related_objects()
 
         return _fetch_all_()
 
+    def _prefetch_related_objects(self):
+        # This method can only be called once the result cache has been filled.
+        result = prefetch_related_objects(self._result_cache, *self._prefetch_related_lookups)
+
+        @later
+        def prefetch(_=result):
+            self._prefetch_done = True
+
+        return prefetch()
 
     def _fetch_all(self):
         "Do nothing."
 
     def __await__(self):
-        return self._fetch_all_().__await__()
+        return self._await().__await__()
+
+    async def _await(self):
+        await self._fetch_all_()
+        return self._result_cache
 
     def _delete(self, objs, using=None):
         if using is None:

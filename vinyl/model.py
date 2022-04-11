@@ -1,4 +1,6 @@
 from django.db.models import DEFERRED
+from django.db.models.query_utils import DeferredAttribute
+
 from vinyl.futures import gen, later
 from django.db import models
 
@@ -35,9 +37,31 @@ class VinylMeta:
     def __get__(self, instance, owner):
         return owner._model._meta
 
+class Proxy:
+    def __init__(self, name):
+        self.name = name
+
+    def __get__(self, instance, owner):
+        # assert not instance
+        at = getattr(owner._model, self.name)
+        if not instance:
+            return at
+        return at.__get__(instance, owner._model)
+
 
 class VinylModel(ModelMixin):
     _model = None
+    _setup = False
+
+    @classmethod
+    def setup(cls):
+        if cls._setup:
+            return
+        for key, val in cls._model.__dict__.items():
+            if isinstance(val, DeferredAttribute) or val.__class__.__module__ == 'django.db.models.fields.related_descriptors':
+                print(key, val)
+                setattr(cls, key, Proxy(key))
+        cls._setup = True
 
     #?
     _meta = VinylMeta()

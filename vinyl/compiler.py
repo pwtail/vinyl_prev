@@ -1,13 +1,9 @@
 import typing
 
-from django.core.exceptions import EmptyResultSet
-from django.db import connection, connections
-from django.db.models.sql.compiler import SQLCompiler as DjangoSQLCompiler
-from django.db.models.sql.compiler import SQLUpdateCompiler as DjangoSQLUpdateCompiler
+from django.db import connections
 from django.db.models.sql import compiler as _compiler
-from django.db.models.sql.constants import SINGLE, MULTI, NO_RESULTS, CURSOR
 
-from vinyl.futures import later, gen, sequence
+from vinyl.futures import later
 
 from django.db.models.sql.compiler import *
 

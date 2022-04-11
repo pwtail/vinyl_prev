@@ -27,12 +27,15 @@ def later(fn):
         elif default_kwargs:
             kwargs = default_kwargs
         for key, val in tuple(kwargs.items()):
-            if isinstance(val, typing.Awaitable):
+            if isinstance(val, typing.Awaitable):  # or coroutine?
                 # try:
                 kwargs[key] = await val
                 # except Exception as ex:
                 #     kwargs[key] = ex
-        return fn(*args, **kwargs)
+        ret = fn(*args, **kwargs)
+        if inspect.iscoroutine(ret):
+            ret = await ret
+        return ret
 
     def wrapper(*args, **kwargs):
         if not is_async():
@@ -41,13 +44,6 @@ def later(fn):
         return awrapper(*args, **kwargs)
 
     return wrapper
-
-
-async def sequence(tasks):
-    li = []
-    for task in tasks:
-        li.append(await task)
-    return li
 
 
 def value(val):

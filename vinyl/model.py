@@ -1,7 +1,7 @@
 from django.db.models import DEFERRED
 from django.db.models.query_utils import DeferredAttribute
 
-from vinyl.futures import gen, later
+from vinyl.futures import gen, later, Lazy
 from django.db import models
 
 
@@ -71,6 +71,11 @@ class VinylModel(ModelMixin):
         ob = cls._model(*args, **kwargs)
         ob.__class__ = cls
         return ob
+
+
+    @property
+    def q(self):
+        return Lazy(self)
 
     @property
     def insert(self):

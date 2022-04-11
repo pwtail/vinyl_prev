@@ -79,3 +79,20 @@ def gen(fn):
 
     return wrapper
 
+#TODO move to another module
+class Lazy:
+
+    def __init__(self, obj):
+        self.obj = obj
+
+    def __getattr__(self, name):
+        field = getattr(self.obj._model, name).field
+        related_model = field.remote_field.model
+        pk = getattr(self.obj, field.column, None)
+        if pk is None:
+            return None
+        from vinyl.manager import _VinylManager
+        from vinyl.model import ensure_vinyl_model
+        manager = _VinylManager()
+        manager.model = ensure_vinyl_model(related_model)
+        return manager.get(pk=pk)

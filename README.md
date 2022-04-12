@@ -111,10 +111,10 @@ supported, so you will have to use CRUD operations provided by vinyl.
 **Model classes**
 
 By default, *vinyl* will create subclasses of `VinylModel` for your django 
-models by default. But you can create these classes explicitly if you want, and 
+models for you. But you can create these classes explicitly if you want, and 
 start 
-adding custom methods to it. Than it should be passed to `VinylManager` as 
-shown below.
+adding custom methods to it. Than the model should be passed to 
+`VinylManager` as an argument.
 
 ```python
 # custom.py

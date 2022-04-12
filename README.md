@@ -144,7 +144,7 @@ feature in django, that was used rarely anyway).
 *vinyl* aims to support Postgresql, MariaDb and MySql. The latter two are 
 pretty similar so that means 2 database backends with sync and async drivers.
 Among the open-source databases, there is also Sqlite, of course, which the 
-author admires much, but its usecase is usually pretty different.
+author admires much, but its usecase usually is pretty different.
 
 **Compatibility with django, vinyl's approach**
 

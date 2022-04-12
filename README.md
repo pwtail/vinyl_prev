@@ -187,4 +187,4 @@ are fed up with!), which without the async features is doomed to extinction.
 Also, *vinyl*, being minimalistic in some aspects, still provides far 
 reacher functionality than many other pure-async frameworks.
 
-Happy coding!
+Happy coding and good luck with *vinyl*!

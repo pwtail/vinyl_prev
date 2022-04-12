@@ -81,17 +81,25 @@ update()` being provided instead.
 **Lazy attributes**
 
 Django is well-known for its lazy attributes, fetching the related entities 
-under the hood implicitly. I decided not to support that fully in *vinyl*.
+on demand under the hood. I decided not to support that feature fully in 
+*vinyl*.
 
-What is supported: if you have prefetched those attributes in previous 
-queries (using `prefetch_related`, for example), than you can use them, 
-otherwise not. Otherwise you have to use the CRUD operations with model 
-instances directly.
+However, if you have have prefetched all the entities, you can use the 
+related attributes (without `await`). If you need to do a query, you should 
+mark that explicitly by using `.q` attribute:
 
-This decision allows to use the model fields as they are in django.
+```python
+await obj.q.related_obj
+```
 
-As a summarizing note, the *vinyl* API, being minimalistic, still provides far 
-reacher functionality than many other pure-async frameworks.
+There is a nice trick to easily support a lot of django API (the read-only part 
+of it). Can you guess how? You first make a `prefetch_related`, which is 
+already implemented, and than return the attributes.
+
+The write operations like `obj.collection.add(item)` probably won't be 
+supported, so you will have to use CRUD operations provided by vinyl. This 
+eliminates the need to track complex chains of writes that needs to be 
+performed.
 
 **Other features that are not supported**
 
@@ -170,6 +178,9 @@ should be interested.
 
 Also, it is a shameless try to revive django (which the most of developers 
 are fed up with!), which without the async features is doomed to extinction.
+
+Also, *vinyl*, being minimalistic in some aspects, still provides far 
+reacher functionality than many other pure-async frameworks.
 
 **Further development**
 

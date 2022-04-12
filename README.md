@@ -148,12 +148,12 @@ author admires much, but its usecase is usually pretty different.
 
 **Compatibility with django, vinyl's approach**
 
-*vinyl* is intended for django projects and is based on the django codebase, 
-however it is largely independent code, in a sense that it doesn't fork django 
+*vinyl* is intended for django projects and is based on the django codebase. 
+However it is largely independent code, in a sense that it doesn't fork django 
 and is almost unaffected by the particular version of django used.
 
-So, *vinyl* has relative freedom to change things, and is 
-going to use that freedom for its benefit.
+So, *vinyl* has relative freedom to change things, and it uses that freedom for 
+its benefit.
 
 As a rule, one should be able to use existing models as they are with 
 *vinyl*.
@@ -161,16 +161,12 @@ As a rule, one should be able to use existing models as they are with
 However, there is intention to make the rules of models inheritance more 
 strict, given that covers the majority of usecases. For example, to allow 
 to inherit from a single concrete model only, so that all models in the 
-inheritance chain would share the same primary key. This will probably simplify 
+inheritance chain would share the same primary key. This can probably simplify 
 things a lot, and will 
 make easier for bulk operations to support inheritance too. 
 Of course, there 
-could be utility 
+can be utility 
 functions for working with existing setups.
-
-As was said above, *vinyl* does change the API for CRUD operations with objects 
-and does not 
-support lazy attributes that need to fetch data on demand.
 
 **Unique features. The summary**
 

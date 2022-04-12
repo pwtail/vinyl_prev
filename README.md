@@ -132,7 +132,7 @@ class Artifact(models.Model):
     vinyl = VinylManager(model=custom.Artifact)
 ```
 
-**Other features that are not supported**
+**Features that are not supported**
 
 Signals are gone in *vinyl*. So is the lazy iteration of querysets, when the 
 result of the queryset doesn't fit in the memory (a really half-baked 

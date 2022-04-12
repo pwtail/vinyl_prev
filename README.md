@@ -1,6 +1,6 @@
 # vinyl project: the async capabilities for django
 
-*vinyl* is a third-party package that allows existing 
+*vinyl* is a third-party package that allows the existing 
 django projects to be used in async context.
 
 Unlike the approach taken by the
@@ -9,13 +9,13 @@ django project, it supports **native asynchrony**.
 **Seamless integration**
 
 *vinyl* doesn't break the existing code of your projects, and can be used as 
-a plug-in.
+a "plug-in".
 
 It uses django extensibility features to a bit more extent than the official 
 documentation recommends.
 Indeed, django is pretty 
-extensible, which is the result of the need of supporting a lot of database 
-backends as well as supporting multiple databases at once.
+extensible, which is the result of the need to support a lot of database 
+backends as well as multiple databases at once.
 
 **VinylManager**
 

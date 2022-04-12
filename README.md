@@ -108,12 +108,6 @@ So, again, the read API can be implemented pretty easily.
 The write operations like `obj.collection.add(item)` probably won't be 
 supported, so you will have to use CRUD operations provided by vinyl.
 
-**Other features that are not supported**
-
-Signals are gone in *vinyl*. So is the lazy iteration of querysets, when the 
-result of the queryset doesn't fit in the memory (a really half-baked 
-feature in django, that is used very rarely anyway).
-
 **Model classes**
 
 By default, *vinyl* will create subclasses of `VinylModel` for your django 
@@ -137,6 +131,12 @@ class Artifact(models.Model):
     ...
     vinyl = VinylManager(model=custom.Artifact)
 ```
+
+**Other features that are not supported**
+
+Signals are gone in *vinyl*. So is the lazy iteration of querysets, when the 
+result of the queryset doesn't fit in the memory (a really half-baked 
+feature in django, that is used very rarely anyway).
 
 **Database support**
 

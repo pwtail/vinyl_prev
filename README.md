@@ -86,12 +86,16 @@ performed.
 **Lazy attributes**
 
 Django is well-known for its lazy attributes, fetching the related entities 
-on demand under the hood. I decided not to support that feature fully in 
+on demand under the hood. I decided not to support that feature in full in 
 *vinyl*.
 
-However, if you have have prefetched all the entities, you can use the 
-related attributes (without `await`). If you need to do a query, you should 
-mark that explicitly by using `.q` attribute:
+However, if you have have prefetched all the related entities, than you can use 
+the 
+related attributes (without `await`). Trying to access attributes that 
+haven't been fetched will result in an error.
+
+If you do need to make a query, you should 
+mark that explicitly by using the `.q` attribute:
 
 ```python
 await obj.q.related_obj

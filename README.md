@@ -61,22 +61,27 @@ minimalistic. Still, having the sync version is important for various
 reasons, the obvious ones being testability and documentation. The time will tell,
 but I think, the sync version of *vinyl* will be used widely too.
 
-**Minimalistic API**
+**Minimalistic write API**
 
-As was said already, *vinyl* provides a more minimalistic API than django. 
+As was said already, *vinyl*'s API is more minimalistic than django's. 
 That's because not all 
 decisions in django are a good fit for a universal framework, supporting both 
 sync 
-and async modes at the same time.
+and async modes.
 
-Regarding the query builder (queryset usage), *vinyl* fully copies the 
+Regarding the query builder (working with querysets), *vinyl* almost fully 
+copies the 
 django API. The querysets are lazy in django, so this is pretty cheap to 
-provide.
+support. This is the API for reading data from the database.
 
 Speaking of the CRUD operations with objects (model instances), the API 
 starts to be different, being more minimalistic and more explicit. 
 For example, currently, there is no `obj.save()` method, with `.insert()` and `.
-update()` being provided instead.
+update()` being provided instead. This is the API for write operations.
+
+A simpler write API eliminates the need to track complex chains of related 
+objects to calculate the sequence of writes that need to be 
+performed.
 
 **Lazy attributes**
 
@@ -97,9 +102,7 @@ of it). Can you guess how? You first make a `prefetch_related`, which is
 already implemented, and than return the attributes.
 
 The write operations like `obj.collection.add(item)` probably won't be 
-supported, so you will have to use CRUD operations provided by vinyl. This 
-eliminates the need to track complex chains of writes that needs to be 
-performed.
+supported, so you will have to use CRUD operations provided by vinyl.
 
 **Other features that are not supported**
 

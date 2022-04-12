@@ -175,7 +175,7 @@ use of the async
 code in django projects.
 
 Also, it is the first ORM that supports both sync and async 
-modes. That 
+modes. This 
 opens 
 the way to having a web application that has both ASGI and WSGI endpoints 
 sharing 

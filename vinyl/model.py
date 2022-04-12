@@ -1,8 +1,7 @@
 from django.db.models import DEFERRED
 from django.db.models.query_utils import DeferredAttribute
 
-from vinyl.futures import gen, later, Lazy
-from django.db import models
+from vinyl.futures import gen, later
 
 
 class ModelMixin:
@@ -42,7 +41,6 @@ class Proxy:
         self.name = name
 
     def __get__(self, instance, owner):
-        # assert not instance
         at = getattr(owner._model, self.name)
         if not instance:
             return at
@@ -55,15 +53,15 @@ class VinylModel(ModelMixin):
 
     @classmethod
     def setup(cls):
+        """Proxy all fields to django model"""
         if cls._setup:
             return
         for key, val in cls._model.__dict__.items():
             if isinstance(val, DeferredAttribute) or val.__class__.__module__ == 'django.db.models.fields.related_descriptors':
-                print(key, val)
+                # print(key, val)
                 setattr(cls, key, Proxy(key))
         cls._setup = True
 
-    #?
     _meta = VinylMeta()
 
     #TODO __init__?
@@ -75,6 +73,7 @@ class VinylModel(ModelMixin):
 
     @property
     def q(self):
+        from vinyl.lazy import Lazy
         return Lazy(self)
 
     @property

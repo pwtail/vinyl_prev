@@ -33,16 +33,17 @@ class VinylQuerySet(QuerySet):
         return getattr(iterables, self._iterable_class.__name__)
 
     def _fetch_all_(self):
-        iterable_class = self.get_vinyl_iterable_class()
-        results = iterable_class(self).get_objects()
+        if not (results := self._result_cache):
+            iterable_class = self.get_vinyl_iterable_class()
+            results = iterable_class(self).get_objects()
 
         @later
-        def _fetch_all_(result_cache=results):
+        def prefetch(result_cache=results):
             self._result_cache = result_cache
             if self._prefetch_related_lookups and not self._prefetch_done:
                 return self._prefetch_related_objects()
 
-        return _fetch_all_()
+        return prefetch()
 
     def _prefetch_related_objects(self):
         # This method can only be called once the result cache has been filled.

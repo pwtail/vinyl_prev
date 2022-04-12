@@ -78,26 +78,3 @@ def gen(fn):
                 return ex.value
 
     return wrapper
-
-
-#TODO move to another module
-class Lazy:
-
-    def __init__(self, obj):
-        self.obj = obj
-
-    def __getattr__(self, name):
-        # qs = self.obj._model.vinyl.filter(pk=self.pk)
-        from vinyl.manager import _VinylManager
-        from vinyl.model import ensure_vinyl_model
-        manager = _VinylManager()
-        manager.model = ensure_vinyl_model(self.obj._model)
-        qs = manager.filter(pk=self.obj.pk)
-        qs = qs.prefetch_related(name)
-
-        @later
-        def get(_=qs):
-            [ob] = qs
-            return getattr(ob, name)
-
-        return get()

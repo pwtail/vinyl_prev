@@ -102,8 +102,8 @@ await obj.q.related_obj
 ```
 
 There is a nice trick to easily support a lot of django API (the read-only part 
-of it). Can you guess how? You first make a `prefetch_related`, which is 
-already implemented, and than return the attributes.
+of it). Can you guess how? I could: first you make a `prefetch_related`, and than return the attributes.
+So, again, the read API is pretty cheap to implement.
 
 The write operations like `obj.collection.add(item)` probably won't be 
 supported, so you will have to use CRUD operations provided by vinyl.

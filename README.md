@@ -170,15 +170,16 @@ functions for working with existing setups.
 
 **Unique features. The summary**
 
-First of all, *vinyl* is the first ORM that supports both sync and async 
-modes (actually there is a third mode too which is vanilla django). That 
-opens 
-the way to have a web application that has both ASGI and WSGI endpoints sharing 
-the same environment (and the database of course).
+In my opinion, *vinyl* proposed the first adequate approach enabling the 
+use of the async 
+code in django projects.
 
-Next, it is the only project that provides integration between your django 
-project and your asynchronous code. So, large projects using django probably 
-should be interested.
+Also, it is the first ORM that supports both sync and async 
+modes. That 
+opens 
+the way to having a web application that has both ASGI and WSGI endpoints 
+sharing 
+the same environment (and the database of course).
 
 Also, it is a shameless try to revive django (which the most of developers 
 are fed up with!), which without the async features is doomed to extinction.
@@ -186,10 +187,4 @@ are fed up with!), which without the async features is doomed to extinction.
 Also, *vinyl*, being minimalistic in some aspects, still provides far 
 reacher functionality than many other pure-async frameworks.
 
-**Further development**
-
-I don't think that such a project (adding async capabilities to django) 
-should be developed as a personal project. It is not that, it's actually the 
-further 
-development of django. So the author will probably do all the development as an 
-employee of a company that uses django extensively.
+Happy coding!

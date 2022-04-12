@@ -137,7 +137,7 @@ class Artifact(models.Model):
 Signals are gone in *vinyl*. So is the lazy iteration of querysets, 
 intended for cases when the 
 result of a queryset doesn't fit in the memory (a really half-baked 
-feature in django, that is used very rarely anyway).
+feature in django, that was used rarely anyway).
 
 **Database support**
 

@@ -79,6 +79,7 @@ def gen(fn):
 
     return wrapper
 
+
 #TODO move to another module
 class Lazy:
 
@@ -86,13 +87,17 @@ class Lazy:
         self.obj = obj
 
     def __getattr__(self, name):
-        field = getattr(self.obj._model, name).field
-        related_model = field.remote_field.model
-        pk = getattr(self.obj, field.column, None)
-        if pk is None:
-            return None
+        # qs = self.obj._model.vinyl.filter(pk=self.pk)
         from vinyl.manager import _VinylManager
         from vinyl.model import ensure_vinyl_model
         manager = _VinylManager()
-        manager.model = ensure_vinyl_model(related_model)
-        return manager.get(pk=pk)
+        manager.model = ensure_vinyl_model(self.obj._model)
+        qs = manager.filter(pk=self.obj.pk)
+        qs = qs.prefetch_related(name)
+
+        @later
+        def get(_=qs):
+            [ob] = qs
+            return getattr(ob, name)
+
+        return get()

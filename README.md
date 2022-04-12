@@ -114,7 +114,7 @@ By default, *vinyl* will create subclasses of `VinylModel` for your django
 models for you. But you can create these classes explicitly if you want, and 
 start 
 adding custom methods to it. Than the model should be passed to 
-`VinylManager` as an argument.
+`VinylManager` as argument.
 
 ```python
 # custom.py

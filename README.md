@@ -134,8 +134,9 @@ class Artifact(models.Model):
 
 **Features that are not supported**
 
-Signals are gone in *vinyl*. So is the lazy iteration of querysets, when the 
-result of the queryset doesn't fit in the memory (a really half-baked 
+Signals are gone in *vinyl*. So is the lazy iteration of querysets, 
+intended for cases when the 
+result of a queryset doesn't fit in the memory (a really half-baked 
 feature in django, that is used very rarely anyway).
 
 **Database support**

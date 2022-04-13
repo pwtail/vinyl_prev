@@ -2,8 +2,7 @@
 
 Всем привет. Некоторое время назад я писал про альтернативные 
 возможности, как можно добавить в django асинхронность (есть официальный 
-подход, изложенный в [DEP-09](https://github.
-com/django/deps/blob/main/accepted/0009-async.rst)). С тех пор у меня 
+подход, изложенный в [DEP-09](https://github.com/django/deps/blob/main/accepted/0009-async.rst)). С тех пор у меня 
 получилось оформить свои идеи 
 в нечто 
 цельное, что вылилось в [*vinyl project*](https://github.com/pwtail/vinyl). 

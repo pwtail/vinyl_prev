@@ -36,3 +36,10 @@ insert()`, `.update()` and `.delete()`)
 - The write API
 
   Utilities for working with objects
+
+
+**Resume**
+
+It is clear to the author that django is doomed to extinction with its current 
+approach to asynchrony. So the only possible approach is the one presented 
+here or the like.

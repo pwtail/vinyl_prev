@@ -21,3 +21,6 @@ def __instancecheck__(cls, instance):
 
 ModelBase.__subclasscheck__ = __subclasscheck__
 ModelBase.__instancecheck__ = __instancecheck__
+
+
+from vinyl.connection import connection

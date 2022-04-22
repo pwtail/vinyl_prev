@@ -2,7 +2,7 @@ import copy
 
 from django.core import exceptions
 from django.db.models.constants import LOOKUP_SEP
-from django.db.models.query import normalize_prefetch_lookups, get_prefetcher
+from django.db.models.query import normalize_prefetch_lookups
 
 from vinyl.futures import gen
 
@@ -195,7 +195,7 @@ def prefetch_one_level(instances, prefetcher, lookup, level):
         is_descriptor,
     ) = prefetcher.get_prefetch_queryset(instances, lookup.get_current_queryset(level))
     from vinyl.queryset import VinylQuerySet
-    rel_qs.__class__ = VinylQuerySet
+    rel_qs = VinylQuerySet.clone(rel_qs)
     # We have to handle the possibility that the QuerySet we just got back
     # contains some prefetch_related lookups. We don't want to trigger the
     # prefetch_related functionality by evaluating the query. Rather, we need
@@ -259,7 +259,9 @@ def prefetch_one_level(instances, prefetcher, lookup, level):
             if as_attr:
                 setattr(obj, to_attr, vals)
             else:
-                manager = getattr(obj, to_attr)
+                at = getattr(obj._model, to_attr)
+                manager = at.__get__(obj, obj._model)
+                # manager = getattr(obj, to_attr)
                 if leaf and lookup.queryset is not None:
                     qs = manager._apply_rel_filters(lookup.queryset)
                 else:
@@ -270,3 +272,64 @@ def prefetch_one_level(instances, prefetcher, lookup, level):
                 qs._prefetch_done = True
                 obj._prefetched_objects_cache[cache_name] = qs
     return all_related_objects, additional_lookups
+
+
+def get_prefetcher(instance, through_attr, to_attr):
+    """
+    For the attribute 'through_attr' on the given instance, find
+    an object that has a get_prefetch_queryset().
+    Return a 4 tuple containing:
+    (the object with get_prefetch_queryset (or None),
+     the descriptor object representing this relationship (or None),
+     a boolean that is False if the attribute was not found at all,
+     a function that takes an instance and returns a boolean that is True if
+     the attribute has already been fetched for that instance)
+    """
+
+    def has_to_attr_attribute(instance):
+        return hasattr(instance, to_attr)
+
+    prefetcher = None
+    is_fetched = has_to_attr_attribute
+
+    # For singly related objects, we have to avoid getting the attribute
+    # from the object, as this will trigger the query. So we first try
+    # on the class, in order to get the descriptor object.
+    rel_obj_descriptor = getattr(instance.__class__, through_attr, None)
+    if rel_obj_descriptor is None:
+        attr_found = hasattr(instance, through_attr)
+    else:
+        attr_found = True
+        if rel_obj_descriptor:
+            # singly related object, descriptor object has the
+            # get_prefetch_queryset() method.
+            if hasattr(rel_obj_descriptor, "get_prefetch_queryset"):
+                prefetcher = rel_obj_descriptor
+                is_fetched = rel_obj_descriptor.is_cached
+            else:
+                # descriptor doesn't support prefetching, so we go ahead and get
+                # the attribute on the instance rather than the class to
+                # support many related managers
+                at = getattr(instance._model, through_attr)
+                rel_obj = at.__get__(instance, instance._model)
+                # rel_obj = getattr(instance, through_attr)
+                if hasattr(rel_obj, "get_prefetch_queryset"):
+                    prefetcher = rel_obj
+                if through_attr != to_attr:
+                    # Special case cached_property instances because hasattr
+                    # triggers attribute computation and assignment.
+                    if isinstance(
+                        getattr(instance.__class__, to_attr, None), cached_property
+                    ):
+
+                        def has_cached_property(instance):
+                            return to_attr in instance.__dict__
+
+                        is_fetched = has_cached_property
+                else:
+
+                    def in_prefetched_cache(instance):
+                        return through_attr in instance._prefetched_objects_cache
+
+                    is_fetched = in_prefetched_cache
+    return prefetcher, rel_obj_descriptor, attr_found, is_fetched

@@ -12,6 +12,21 @@ from vinyl.query import VinylQuery
 
 
 class VinylQuerySet(QuerySet):
+    @classmethod
+    def clone(cls, qs):
+        c = cls(
+            model=qs.model,
+            query=qs.query.chain(klass=VinylQuery),
+            using=qs._db,
+            hints=qs._hints,
+        )
+        c._sticky_filter = qs._sticky_filter
+        c._for_write = qs._for_write
+        c._prefetch_related_lookups = qs._prefetch_related_lookups[:]
+        c._known_related_objects = qs._known_related_objects
+        c._iterable_class = qs._iterable_class
+        c._fields = qs._fields
+        return c
 
     def __init__(self, model=None, query=None, using=None, hints=None):
         query = query or VinylQuery(model)
@@ -159,3 +174,5 @@ class VinylQuerySet(QuerySet):
 
         return last()
 
+    def prefetch(self, *lookups):
+        return self.prefetch_related(*lookups)

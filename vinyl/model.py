@@ -8,6 +8,7 @@ from django.db.models.query_utils import DeferredAttribute
 from vinyl.futures import gen, later
 
 
+
 class ModelMixin:
 
     def _get_pk_val(self, meta=None):
@@ -41,54 +42,124 @@ class VinylMeta:
         return owner._model._meta
 
 
-def add_mixin(Mixin, obj):
-    bases = (Mixin,) + obj.__class__.__bases__
-    # metacls = type(obj.__class__)
-    name = f'Vinyl{obj.__class__.__name__}'
-    new_cls = type(name, bases, {})
-    new_obj = copy(obj)
-    new_obj.__class__ = new_cls
-    return new_obj
+# class ForbidIteration:
+#     def __init__(self, *args):
+#         self.args = args
+#
+#     def __iter__(self):
+#         raise Exception
+#
+#
+# def forbid_iteration(iterable_class, _iterable_classes={}):
+#     if issubclass(iterable_class, ForbidIteration):
+#         return iterable_class
+#
+#     if not (cls := _iterable_classes.get(iterable_class)):
+#         cls = type(iterable_class.__name__, (ForbidIteration,), {})
+#         _iterable_classes[iterable_class] = cls
+#     return cls
+
+
+
+#
+# def add_mixin(Mixin, obj):
+#     bases = (Mixin,) + obj.__class__.__mro__
+#     # metacls = type(obj.__class__)
+#     name = f'Vinyl{obj.__class__.__name__}'
+#     new_cls = type(name, bases, {})
+#     new_obj = copy(obj)
+#     new_obj.__class__ = new_cls
+#     return new_obj
+#
+
+class DbHit(Exception):
+    pass
+
+def raise_db_hit(*args, **kw):
+    raise DbHit
+
+def hits_db(qs):
+    iterable_class = qs._iterable_class
+    try:
+        qs._iterable_class = raise_db_hit
+        list(qs)
+    except DbHit:
+        return True
+    else:
+        return False
+    finally:
+        qs._iterable_class = iterable_class
 
 
 class Proxy:
-    extend_attr = None
+    # extend_attr = None
 
     def __init__(self, name, attr):
         self.name = name
-        if self.extend_attr:
-            attr = self.extend_attr(attr)
+        # if self.extend_attr:
+        #     attr = self.extend_attr(attr)
         self.attr = attr
 
     def __get__(self, instance, owner):
         # at = getattr(owner._model, self.name)
         if not instance:
-            return self.attr
+            at = getattr(owner._model, self.name)
+            return at
+            # return self.attr
         return self.attr.__get__(instance, owner._model)
 
 
 class FKeyProxy(Proxy):
-    class FKey:
-        def get_queryset(self, **hints):
-            qs = super().get_queryset(**hints)
-            qs._iterable_class = lambda *args, **kwargs: None
-            return qs
+    # class FKey:
+    #     def get_queryset(self, **hints):
+    #         qs = super().get_queryset(**hints)
+    #         qs._iterable_class = forbid_iteration(qs._iterable_class)
+    #         return qs
 
-    def extend_attr(self, attr):
-        return add_mixin(self.FKey, attr)
+    def __get__(self, instance, owner):
+        if not instance:
+            return super().__get__(instance, owner)
+        qs = self.attr.get_queryset()
+        # try:
+        #     qs._iterable_class = raise_exception()
+        #     list(qs)
+        # except NotCached:
+        #     qs._iterable_class = iterable_class
+        #
+        #     qs.__class__ = VinylQuerySet
+        #     return qs
+
+        if hits_db(qs):
+            from vinyl.queryset import VinylQuerySet
+            qs = VinylQuerySet.clone(qs)
+            return qs.first()
+        if qs:
+            return qs._result_cache[0]
+        # return qs
+
+
+    # def extend_attr(self, attr):
+    #     return add_mixin(self.FKey, attr)
 
 
 
 class ManagerProxy(Proxy):
-    class RelatedMgr:
-        def get_queryset(self):
-            qs = super().get_queryset()
-            qs._iterable_class = lambda *args, **kwargs: None
-            return qs
+    # class RelatedMgr:
+        # def get_queryset(self):
+        #     qs = super().get_queryset()
+        #     qs._iterable_class = forbid_iteration(qs._iterable_class)
+        #     return qs
 
     def __get__(self, instance, owner):
+        if not instance:
+            return super().__get__(instance, owner)
         mgr = super().__get__(instance, owner)
-        return add_mixin(self.RelatedMgr, mgr)
+        qs = mgr.all()
+        from vinyl.queryset import VinylQuerySet
+        qs = VinylQuerySet.clone(qs)
+        #     return qs
+        return qs
+        # return add_mixin(self.RelatedMgr, mgr)
 
 
 class VinylModel(ModelMixin):
@@ -104,10 +175,14 @@ class VinylModel(ModelMixin):
             if isinstance(val, DeferredAttribute) or val.__class__.__module__ == 'django.db.models.fields.related_descriptors':
                 # print(key, val)
                 if val.__class__.__name__.endswith('ToManyDescriptor'):
-                    print(key)
+                    print('ToMany', key)
                     setattr(cls, key, ManagerProxy(key, val))
+                elif val.__class__.__name__.endswith('ToOneDescriptor'):
+                    print('ToOne', key)
+                    setattr(cls, key, FKeyProxy(key, val))
                 else:
-                    setattr(cls, key, Proxy(key, val))
+                    print('other', key)
+                    setattr(cls, key, FKeyProxy(key, val))
         cls._setup = True
 
     _meta = VinylMeta()

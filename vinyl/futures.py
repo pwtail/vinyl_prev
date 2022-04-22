@@ -78,3 +78,9 @@ def gen(fn):
                 return ex.value
 
     return wrapper
+
+
+def wrap_co(fn):
+    async def wrapper(*args, **kw):
+        return await fn(*args, **kw)
+    return wrapper

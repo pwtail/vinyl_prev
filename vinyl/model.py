@@ -1,3 +1,7 @@
+import inspect
+from copy import copy
+
+from django.db import models
 from django.db.models import DEFERRED
 from django.db.models.query_utils import DeferredAttribute
 
@@ -36,15 +40,55 @@ class VinylMeta:
     def __get__(self, instance, owner):
         return owner._model._meta
 
+
+def add_mixin(Mixin, obj):
+    bases = (Mixin,) + obj.__class__.__bases__
+    # metacls = type(obj.__class__)
+    name = f'Vinyl{obj.__class__.__name__}'
+    new_cls = type(name, bases, {})
+    new_obj = copy(obj)
+    new_obj.__class__ = new_cls
+    return new_obj
+
+
 class Proxy:
-    def __init__(self, name):
+    extend_attr = None
+
+    def __init__(self, name, attr):
         self.name = name
+        if self.extend_attr:
+            attr = self.extend_attr(attr)
+        self.attr = attr
 
     def __get__(self, instance, owner):
-        at = getattr(owner._model, self.name)
+        # at = getattr(owner._model, self.name)
         if not instance:
-            return at
-        return at.__get__(instance, owner._model)
+            return self.attr
+        return self.attr.__get__(instance, owner._model)
+
+
+class FKeyProxy(Proxy):
+    class FKey:
+        def get_queryset(self, **hints):
+            qs = super().get_queryset(**hints)
+            qs._iterable_class = lambda *args, **kwargs: None
+            return qs
+
+    def extend_attr(self, attr):
+        return add_mixin(self.FKey, attr)
+
+
+
+class ManagerProxy(Proxy):
+    class RelatedMgr:
+        def get_queryset(self):
+            qs = super().get_queryset()
+            qs._iterable_class = lambda *args, **kwargs: None
+            return qs
+
+    def __get__(self, instance, owner):
+        mgr = super().__get__(instance, owner)
+        return add_mixin(self.RelatedMgr, mgr)
 
 
 class VinylModel(ModelMixin):
@@ -59,7 +103,11 @@ class VinylModel(ModelMixin):
         for key, val in cls._model.__dict__.items():
             if isinstance(val, DeferredAttribute) or val.__class__.__module__ == 'django.db.models.fields.related_descriptors':
                 # print(key, val)
-                setattr(cls, key, Proxy(key))
+                if val.__class__.__name__.endswith('ToManyDescriptor'):
+                    print(key)
+                    setattr(cls, key, ManagerProxy(key, val))
+                else:
+                    setattr(cls, key, Proxy(key, val))
         cls._setup = True
 
     _meta = VinylMeta()

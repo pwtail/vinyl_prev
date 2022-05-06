@@ -257,7 +257,10 @@ def prefetch_one_level(instances, prefetcher, lookup, level):
                 obj._state.fields_cache[cache_name] = val
         else:
             if as_attr:
-                setattr(obj, to_attr, vals)
+                # setattr(obj, to_attr, vals)
+                #TODO TEST
+                setattr(obj, to_attr, rel_qs)
+                rel_qs._result_cache = vals
             else:
                 at = getattr(obj._model, to_attr)
                 manager = at.__get__(obj, obj._model)

@@ -47,28 +47,20 @@ class VinylQuerySet(QuerySet):
     def get_vinyl_iterable_class(self):
         return getattr(iterables, self._iterable_class.__name__)
 
+    #TODO drop _result_cache
+    #TODO evaluate
     def _fetch_all_(self):
-        if not (results := self._result_cache):
-            iterable_class = self.get_vinyl_iterable_class()
-            results = iterable_class(self).get_objects()
+        # if not (results := self._result_cache):
+        iterable_class = self.get_vinyl_iterable_class()
+        results = iterable_class(self).get_objects()
 
         @later
-        def prefetch(result_cache=results):
-            self._result_cache = result_cache
-            if self._prefetch_related_lookups and not self._prefetch_done:
-                return self._prefetch_related_objects()
+        def prefetch(results=results):
+            return prefetch_related_objects(model_instances=results, *self._prefetch_related_lookups)
+        # prefetch = later(prefetch_related_objects)  #TODO
 
         return prefetch()
 
-    def _prefetch_related_objects(self):
-        # This method can only be called once the result cache has been filled.
-        result = prefetch_related_objects(self._result_cache, *self._prefetch_related_lookups)
-
-        @later
-        def prefetch(_=result):
-            self._prefetch_done = True
-
-        return prefetch()
 
     def _fetch_all(self):
         "Do nothing."
@@ -76,9 +68,7 @@ class VinylQuerySet(QuerySet):
     def __await__(self):
         return self._await().__await__()
 
-    async def _await(self):
-        await self._fetch_all_()
-        return self._result_cache
+    _await = _fetch_all_
 
     def _delete(self, objs, using=None):
         if using is None:
@@ -127,17 +117,15 @@ class VinylQuerySet(QuerySet):
             clone.query.set_limits(high=limit)
 
         @later
-        def get(_=clone):
-            if not is_async():
-                clone._fetch_all_()
-            return clone._get(limit=limit)
+        def get(results=clone._fetch_all_()):
+            return clone._get(results, limit=limit)
 
         return get()
 
-    def _get(self, limit=None):
-        num = len(self._result_cache)
+    def _get(self, results, limit=None):
+        num = len(results)
         if num == 1:
-            return self._result_cache[0]
+            return results[0]
         if not num:
             raise self.model.DoesNotExist(
                 "%s matching query does not exist." % self.model._meta.object_name
@@ -154,9 +142,7 @@ class VinylQuerySet(QuerySet):
         qs = (self if self.ordered else self.order_by("pk"))[:1]
 
         @later
-        def first(qs=qs):
-            if not is_async():
-                qs._fetch_all_()
+        def first(qs=qs._fetch_all_()):
             for obj in qs:
                 return obj
 
@@ -166,9 +152,7 @@ class VinylQuerySet(QuerySet):
         qs = (self.reverse() if self.ordered else self.order_by("-pk"))[:1]
 
         @later
-        def last(qs=qs):
-            if not is_async():
-                qs._fetch_all_()
+        def last(qs=qs._fetch_all_()):
             for obj in qs:
                 return obj
 

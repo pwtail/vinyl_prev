@@ -15,7 +15,7 @@ def prefetch_related_objects(model_instances, *related_lookups):
     the lookups/Prefetch instances given.
     """
     if not model_instances:
-        return  # nothing to do
+        return ()  # nothing to do
 
     # We need to be able to dynamically add to the list of prefetch_related
     # lookups that we look up (see below).  So we need some book keeping to
@@ -162,6 +162,8 @@ def prefetch_related_objects(model_instances, *related_lookups):
                         new_obj_list.append(new_obj)
                 obj_list = new_obj_list
 
+    return model_instances
+
 
 def prefetch_one_level(instances, prefetcher, lookup, level):
     """
@@ -212,8 +214,7 @@ def prefetch_one_level(instances, prefetcher, lookup, level):
         # for performance reasons.
         rel_qs._prefetch_related_lookups = ()
 
-    yield rel_qs._fetch_all_()
-    all_related_objects = list(rel_qs)
+    all_related_objects = rel_qs._fetch_all_()
 
     rel_obj_cache = {}
     for rel_obj in all_related_objects:
@@ -273,6 +274,7 @@ def prefetch_one_level(instances, prefetcher, lookup, level):
                 # We don't want the individual qs doing prefetch_related now,
                 # since we have merged this into the current work.
                 qs._prefetch_done = True
+                assert 0, "?"
                 obj._prefetched_objects_cache[cache_name] = qs
     return all_related_objects, additional_lookups
 

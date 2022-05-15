@@ -1,0 +1,2 @@
+_prefetched_objects_cache: use another attr
+prefetch: ob['collection']

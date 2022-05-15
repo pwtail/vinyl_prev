@@ -56,7 +56,7 @@ class VinylQuerySet(QuerySet):
 
         @later
         def prefetch(results=results):
-            return prefetch_related_objects(model_instances=results, *self._prefetch_related_lookups)
+            return prefetch_related_objects(results, *self._prefetch_related_lookups)
         # prefetch = later(prefetch_related_objects)  #TODO
 
         return prefetch()

@@ -214,7 +214,7 @@ def prefetch_one_level(instances, prefetcher, lookup, level):
         # for performance reasons.
         rel_qs._prefetch_related_lookups = ()
 
-    all_related_objects = rel_qs._fetch_all_()
+    all_related_objects = yield rel_qs._fetch_all_()
 
     rel_obj_cache = {}
     for rel_obj in all_related_objects:
@@ -258,24 +258,20 @@ def prefetch_one_level(instances, prefetcher, lookup, level):
                 obj._state.fields_cache[cache_name] = val
         else:
             if as_attr:
-                # setattr(obj, to_attr, vals)
-                #TODO TEST
-                setattr(obj, to_attr, rel_qs)
-                rel_qs._result_cache = vals
+                setattr(obj, to_attr, vals)
             else:
-                at = getattr(obj._model, to_attr)
-                manager = at.__get__(obj, obj._model)
+                # at = getattr(obj._model, to_attr)
+                # manager = at.__get__(obj, obj._model)
                 # manager = getattr(obj, to_attr)
-                if leaf and lookup.queryset is not None:
-                    qs = manager._apply_rel_filters(lookup.queryset)
-                else:
-                    qs = manager.get_queryset()
-                qs._result_cache = vals
-                # We don't want the individual qs doing prefetch_related now,
-                # since we have merged this into the current work.
-                qs._prefetch_done = True
-                assert 0, "?"
-                obj._prefetched_objects_cache[cache_name] = qs
+                # if leaf and lookup.queryset is not None:
+                #     qs = manager._apply_rel_filters(lookup.queryset)
+                # else:
+                #     qs = manager.get_queryset()
+                # qs._result_cache = vals
+                # # We don't want the individual qs doing prefetch_related now,
+                # # since we have merged this into the current work.
+                # qs._prefetch_done = True
+                obj._prefetched_objects_cache[cache_name] = vals
     return all_related_objects, additional_lookups
 
 

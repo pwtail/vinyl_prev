@@ -28,10 +28,15 @@ def later(fn):
             kwargs = default_kwargs
         for key, val in tuple(kwargs.items()):
             if isinstance(val, typing.Awaitable):  # or coroutine?
-                # try:
-                kwargs[key] = await val
-                # except Exception as ex:
-                #     kwargs[key] = ex
+                try:
+                    kwargs[key] = await val
+                except Exception as ex:
+                    if 'ex' not in sig.parameters:
+                        raise
+                    for k in tuple(kwargs.keys()):
+                        kwargs[k] = return_none
+                    kwargs[key] = kwargs['ex'] = Raise(ex)
+                    break
         ret = fn(*args, **kwargs)
         if inspect.iscoroutine(ret):
             ret = await ret
@@ -84,3 +89,26 @@ def wrap_co(fn):
     async def wrapper(*args, **kw):
         return await fn(*args, **kw)
     return wrapper
+
+
+class Raise:
+
+    def __init__(self, ex):
+        self.ex = ex
+
+    def __call__(self):
+        if ex := self.ex:
+            self.ex = None
+            raise ex
+
+
+class ReturnNone:
+
+    def __bool__(self):
+        return False
+
+    def __call__(self):
+        return None
+
+
+return_none = ReturnNone()

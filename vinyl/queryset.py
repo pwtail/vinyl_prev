@@ -160,3 +160,11 @@ class VinylQuerySet(QuerySet):
 
     def prefetch(self, *lookups):
         return self.prefetch_related(*lookups)
+
+
+    # def get_or_none(self):
+    #     await self.get()
+    #     @later
+    #     def _():
+    #         try:
+    #

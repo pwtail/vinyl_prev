@@ -120,6 +120,12 @@ class FKeyProxy(Proxy):
         if not instance:
             return super().__get__(instance, owner)
         qs = self.attr.get_queryset()
+        qs = VinylQuerySet.clone(qs)
+        return get_or_none(qs)
+        try:
+            return qs.get()
+        except qs.model.DoesNotExist:
+            return None
         # try:
         #     qs._iterable_class = raise_exception()
         #     list(qs)
@@ -140,6 +146,11 @@ class FKeyProxy(Proxy):
 
     # def extend_attr(self, attr):
     #     return add_mixin(self.FKey, attr)
+
+    def __getitem__(self, item):
+        return self.instance._prefetched_objects_cache[
+            self.field.remote_field.get_cache_name()
+        ]
 
 
 
@@ -190,14 +201,15 @@ class VinylModel(ModelMixin):
     #TODO __init__?
     def __new__(cls, *args, **kwargs):
         ob = cls._model(*args, **kwargs)
+        ob._prefetch_cache = {}
         ob.__class__ = cls
         return ob
 
 
-    @property
-    def q(self):
-        from vinyl.lazy import Lazy
-        return Lazy(self)
+    # @property
+    # def q(self):
+    #     from vinyl.lazy import Lazy
+    #     return Lazy(self)
 
     @property
     def insert(self):

@@ -40,9 +40,9 @@ class VinylQuerySet(QuerySet):
         return f'vinyl_{db}'
 
     def __iter__(self):
-        if not is_async():
-            self._fetch_all_()
-        return iter(self._result_cache)
+        assert not is_async()
+        return self._fetch_all_()
+        # return iter(self._result_cache)
 
     def get_vinyl_iterable_class(self):
         return getattr(iterables, self._iterable_class.__name__)

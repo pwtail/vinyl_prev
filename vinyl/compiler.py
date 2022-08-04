@@ -23,9 +23,10 @@ class ExecuteMixin:
                 raise EmptyResultSet
         except EmptyResultSet:
             if result_type == MULTI:
-                return iter([])
+                ret = iter([])
             else:
-                return
+                ret = None
+            return later.value(ret)
         execute = cursor.execute(sql, params)
         fetchone = fetchall = None
         if result_type == SINGLE:

@@ -20,6 +20,8 @@ class BaseDatabaseWrapper(_BaseDatabaseWrapper):
         async def awrapper(*args, **kwargs):
             async with self.cursor() as cursor:
                 val = fn(*args, cursor=cursor, **kwargs)
+                if not val:
+                    1
                 return await val
 
         def wrapper(*args, **kwargs):

@@ -1,12 +1,8 @@
-import inspect
-from copy import copy
-
-from django.db import models
 from django.db.models import DEFERRED
 from django.db.models.query_utils import DeferredAttribute
 
 from vinyl.futures import gen, later
-
+from vinyl.queryset import VinylQuerySet
 
 
 class ModelMixin:
@@ -37,7 +33,7 @@ class ModelMixin:
         return new
 
 
-class VinylMeta:
+class VinylMetaD:
     def __get__(self, instance, owner):
         return owner._model._meta
 
@@ -72,24 +68,8 @@ class VinylMeta:
 #     return new_obj
 #
 
-class DbHit(Exception):
-    pass
 
-def raise_db_hit(*args, **kw):
-    raise DbHit
-
-def hits_db(qs):
-    iterable_class = qs._iterable_class
-    try:
-        qs._iterable_class = raise_db_hit
-        list(qs)
-    except DbHit:
-        return True
-    else:
-        return False
-    finally:
-        qs._iterable_class = iterable_class
-
+# model, name
 
 class Proxy:
     # extend_attr = None
@@ -101,11 +81,8 @@ class Proxy:
         self.attr = attr
 
     def __get__(self, instance, owner):
-        # at = getattr(owner._model, self.name)
         if not instance:
-            at = getattr(owner._model, self.name)
-            return at
-            # return self.attr
+            return self.attr
         return self.attr.__get__(instance, owner._model)
 
 
@@ -119,30 +96,11 @@ class FKeyProxy(Proxy):
     def __get__(self, instance, owner):
         if not instance:
             return super().__get__(instance, owner)
-        qs = self.attr.get_queryset()
+
+        qs = self.attr.get_queryset(instance=instance)
         qs = VinylQuerySet.clone(qs)
-        return get_or_none(qs)
-        try:
-            return qs.get()
-        except qs.model.DoesNotExist:
-            return None
-        # try:
-        #     qs._iterable_class = raise_exception()
-        #     list(qs)
-        # except NotCached:
-        #     qs._iterable_class = iterable_class
-        #
-        #     qs.__class__ = VinylQuerySet
-        #     return qs
-
-        if hits_db(qs):
-            from vinyl.queryset import VinylQuerySet
-            qs = VinylQuerySet.clone(qs)
-            return qs.first()
-        if qs:
-            return qs._result_cache[0]
-        # return qs
-
+        # Assuming the database enforces foreign keys, this won't fail.
+        return qs.filter(self.attr.field.get_reverse_related_filter(instance)).get_or_none()
 
     # def extend_attr(self, attr):
     #     return add_mixin(self.FKey, attr)
@@ -175,28 +133,7 @@ class ManagerProxy(Proxy):
 
 class VinylModel(ModelMixin):
     _model = None
-    _setup = False
-
-    @classmethod
-    def setup(cls):
-        """Proxy all fields to django model"""
-        if cls._setup:
-            return
-        for key, val in cls._model.__dict__.items():
-            if isinstance(val, DeferredAttribute) or val.__class__.__module__ == 'django.db.models.fields.related_descriptors':
-                # print(key, val)
-                if val.__class__.__name__.endswith('ToManyDescriptor'):
-                    print('ToMany', key)
-                    setattr(cls, key, ManagerProxy(key, val))
-                elif val.__class__.__name__.endswith('ToOneDescriptor'):
-                    print('ToOne', key)
-                    setattr(cls, key, FKeyProxy(key, val))
-                else:
-                    print('other', key)
-                    setattr(cls, key, FKeyProxy(key, val))
-        cls._setup = True
-
-    _meta = VinylMeta()
+    _meta = VinylMetaD()
 
     #TODO __init__?
     def __new__(cls, *args, **kwargs):
@@ -240,7 +177,8 @@ class VinylModel(ModelMixin):
         returning_fields = meta.db_returning_fields
         from vinyl.manager import _VinylManager
         manager = _VinylManager()
-        manager.model = ensure_vinyl_model(meta.model)
+        from vinyl.meta import make_vinyl_model
+        manager.model = make_vinyl_model(meta.model)
         results = manager._insert(
             [self],
             fields=fields,
@@ -289,7 +227,8 @@ class VinylModel(ModelMixin):
             cls = self.__class__
         from vinyl.manager import _VinylManager
         manager = _VinylManager()
-        manager.model = ensure_vinyl_model(cls._meta.model)
+        from vinyl.meta import make_vinyl_model
+        model.manager = make_vinyl_model(cls._meta.model)
         num_rows = manager._delete(
             [self],
             using=using,
@@ -313,15 +252,25 @@ class VinylModel(ModelMixin):
     def _update(self, cls=None, using=None, **kwargs):
         cls = self.__class__
         meta = cls._meta
+        non_pks = [f for f in meta.local_concrete_fields if not f.primary_key]
 
-        def values():
-            for field in meta.local_concrete_fields:
-                if field.primary_key:
-                    continue
-                if field.name in kwargs:
-                    yield field, None, kwargs[field.name]
+        # def values():
+        #     for field in meta.local_concrete_fields:
+        #         if field.primary_key:
+        #             continue
+        #         if field.name in kwargs:
+        #             yield field, None, kwargs[field.name]
+        #
+        # values = tuple(values())
 
-        values = tuple(values())
+        values = [
+            (
+                f,
+                None,
+                f.pre_save(self, False),
+            )
+            for f in non_pks
+        ]
 
         pk_val = self._get_pk_val(meta)
         base_qs = meta.model.vinyl.using(using)
@@ -344,14 +293,14 @@ class VinylModel(ModelMixin):
 vinyl_models = {}
 
 
-def ensure_vinyl_model(model_cls):
-    if issubclass(model_cls, VinylModel):
-        return model_cls
-    if model := vinyl_models.get(model_cls):
-        return model
-
-    model = type(
-        model_cls.__name__, (VinylModel,), {'_model': model_cls}
-    )
-    vinyl_models[model_cls] = model
-    return model
+# def ensure_vinyl_model(model_cls):
+#     if issubclass(model_cls, VinylModel):
+#         return model_cls
+#     if model := vinyl_models.get(model_cls):
+#         return model
+#
+#     model = type(
+#         model_cls.__name__, (VinylModel,), {'_model': model_cls}
+#     )
+#     vinyl_models[model_cls] = model
+#     return model

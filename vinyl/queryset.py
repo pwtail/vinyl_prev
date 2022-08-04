@@ -162,9 +162,17 @@ class VinylQuerySet(QuerySet):
         return self.prefetch_related(*lookups)
 
 
-    # def get_or_none(self):
-    #     await self.get()
-    #     @later
-    #     def _():
-    #         try:
-    #
+    def get_or_none(self):
+        if not is_async():
+            try:
+                return self.get()
+            except self.model.DoesNotExist:
+                return None
+
+        async def get_or_none():
+            try:
+                return await self.get()
+            except self.model.DoesNotExist:
+                return None
+
+        return get_or_none()

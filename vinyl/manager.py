@@ -1,7 +1,7 @@
 from django.db.models.manager import BaseManager, ManagerDescriptor
 from django.db import models
 
-from vinyl.model import ensure_vinyl_model, VinylModel
+from vinyl.meta import make_vinyl_model
 from vinyl.queryset import VinylQuerySet
 
 
@@ -9,9 +9,10 @@ class _VinylManager(BaseManager.from_queryset(VinylQuerySet)):
     """
     VinylManager itself.
     """
+    model = None
 
-    def __call__(self, *args, **kwargs):
-        return self.model(*args, **kwargs)
+    # def __call__(self, *args, **kwargs):
+    #     return self.model(*args, **kwargs)
 
 
 class VinylManagerDescriptor(ManagerDescriptor):
@@ -19,22 +20,22 @@ class VinylManagerDescriptor(ManagerDescriptor):
 
     def __init__(self, model=None):
         self.manager = _VinylManager()
-        self.manager.model = model
+        if model:
+            self.manager.model = model
 
     def __get__(self, instance, owner):
+        assert not instance
         assert self.manager
-        #FIXME!
-        self.manager.model.setup()
+        if not self.manager.model:
+            self.manager.model = make_vinyl_model(owner)
+            print('make')
         return self.manager
 
     def __set_name__(self, owner, name):
         assert issubclass(owner, models.Model)
         self.manager.name = name
-
-        if not (model := self.manager.model):
-            model = ensure_vinyl_model(owner)
-            self.manager.model = model
-        model._model = owner
+        # assert not self.manager.model
+        # self.manager.model = make_vinyl_model(owner)
 
 
 VinylManager = VinylManagerDescriptor

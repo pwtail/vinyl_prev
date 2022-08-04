@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 ipdb = "*"
 django = {editable = true, path = "/home/pwtail/sof/django"}
+vinyl = {editable = true, path = "."}
 
 [dev-packages]
 

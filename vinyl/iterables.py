@@ -6,7 +6,6 @@ from django.db.models.sql.constants import GET_ITERATOR_CHUNK_SIZE
 from django.db.models.utils import create_namedtuple_class
 
 from vinyl.futures import later
-from vinyl.model import ensure_vinyl_model
 
 
 class BaseIterable:
@@ -47,7 +46,7 @@ class ModelIterable(BaseIterable):
             compiler.annotation_col_map,
         )
         model_cls = klass_info["model"]
-        model_cls = ensure_vinyl_model(model_cls)
+        # model_cls = model_cls.vinyl.model
 
         select_fields = klass_info["select_fields"]
         model_fields_start, model_fields_end = select_fields[0], select_fields[-1] + 1
